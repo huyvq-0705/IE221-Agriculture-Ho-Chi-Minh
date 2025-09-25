@@ -1,0 +1,83 @@
+# =========================================
+# Python / Django
+# =========================================
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pyc
+.Python
+db.sqlite3
+*.sqlite3
+.env
+venv/
+ENV/
+env/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.egg/
+.eggs/
+celerybeat-schedule
+instance/
+.wsgi/
+staticfiles/
+media/
+
+# Django specific
+*.log
+local_settings.py
+
+# =========================================
+# Node / Next.js
+# =========================================
+node_modules/
+.next/
+out/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+
+# Next.js build output
+.next/
+out/
+
+# Tailwind cache
+.tailwindcss/
+
+# shadcn/ui cache
+components.json
+
+# =========================================
+# General / OS
+# =========================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.swn
+*.swm
+.idea/
+.vscode/
+*.iml
+
+# =========================================
+# Environment & secrets
+# =========================================
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
