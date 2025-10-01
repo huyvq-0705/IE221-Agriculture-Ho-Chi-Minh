@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
 from .constants import FieldLengths
-
+from django.conf import settings
 
 
 #-------- category --------
@@ -27,7 +27,7 @@ class Product(models.Model):
     name = models.CharField(max_length=FieldLengths.MAX_LENGTH)
     slug = models.SlugField(max_length=FieldLengths.MAX_LENGTH, unique=True, blank=True, db_index=True)
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=FieldLengths.DECIMAL_MAX_DIGITS, decimal_places=FieldLengths)
+    price = models.DecimalField(max_digits=FieldLengths.DECIMAL_MAX_DIGITS, decimal_places=FieldLengths.DECIMAL_PLACES)
     category = models.ForeignKey(
         'Category', on_delete=models.CASCADE, related_name='products'
     )
@@ -50,7 +50,7 @@ class Product(models.Model):
 
 class ProductReview(models.Model):
     user = models.ForeignKey(
-        'auth.User', on_delete=models.CASCADE, related_name='product_reviews'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='product_reviews'
     )
     product = models.ForeignKey(
         'Product', on_delete=models.CASCADE, related_name='reviews'
