@@ -62,6 +62,14 @@ export function Navbar() {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link
+                  href="/products"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-700 hover:underline underline-offset-4 transition-colors"
+                >
+                  Sản Phẩm
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link
                   href="/about"
                   className="text-sm font-medium text-gray-700 hover:text-emerald-700 hover:underline underline-offset-4 transition-colors"
                 >
