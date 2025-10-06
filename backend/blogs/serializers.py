@@ -43,3 +43,4 @@ class BlogDetailSerializer(serializers.ModelSerializer):
 
     def validate_meta_description(self, value):
         return strip_tags(value or "")[:160]
+    
