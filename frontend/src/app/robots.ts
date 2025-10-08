@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
 
+const SITE = process.env.SITE_URL || "http://localhost:3000";
+const HOST = process.env.HOST || "localhost";
+
 export default function robots(): MetadataRoute.Robots {
-  const base = "https://agrihcm.id.vn";
   return {
     rules: [{ userAgent: "*", allow: "/" }],
-    sitemap: `${base}/sitemap.xml`,
-    host: base,
+    sitemap: [`${SITE}/sitemap.xml`],
+    host: HOST,
   };
 }

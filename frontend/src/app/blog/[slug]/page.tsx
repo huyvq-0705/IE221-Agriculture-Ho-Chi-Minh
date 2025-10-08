@@ -22,7 +22,7 @@ type BlogPost = {
 };
 
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
-const SITE_ORIGIN = "https://agrihcm.id.vn";
+const SITE_ORIGIN = process.env.SITE_URL || "http://localhost:3000";
 
 // ---- data fetch (SSR each request) ----
 async function getPost(slug: string): Promise<BlogPost | null> {

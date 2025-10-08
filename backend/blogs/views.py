@@ -4,8 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Blog
-from .serializers import BlogListSerializer, BlogDetailSerializer
-
+from .serializers import BlogListSerializer, BlogDetailSerializer, BlogListSerializer
 
 class BlogPagination(PageNumberPagination):
     page_size = 10
