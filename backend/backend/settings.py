@@ -47,9 +47,11 @@ INSTALLED_APPS = [
     'products',
     'users',
     'accounts',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Phải ở đầu
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -60,6 +62,18 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
+# Cho phép tất cả origins (CHỈ dùng khi dev)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Hoặc chỉ định cụ thể
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Cho phép credentials
+CORS_ALLOW_CREDENTIALS = True
 
 TEMPLATES = [
     {
