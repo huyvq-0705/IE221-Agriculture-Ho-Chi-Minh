@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, AdminLoginSerializer
+from django.contrib.auth import authenticate
 
 
 class RegisterView(generics.CreateAPIView):
@@ -28,7 +29,7 @@ class LoginView(APIView):
                 "username": user.username,
                 "email": user.email,
             },
-        })
+        }, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
@@ -42,3 +43,25 @@ class LogoutView(APIView):
             return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
         except Exception:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AdminLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'message': 'Admin login successful',
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_superuser': user.is_superuser
+            }
+        }, status=status.HTTP_200_OK)

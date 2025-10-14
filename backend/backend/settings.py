@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'users',
     'accounts',
     'corsheaders',
+    'flashsales'
 ]
 
 MIDDLEWARE = [

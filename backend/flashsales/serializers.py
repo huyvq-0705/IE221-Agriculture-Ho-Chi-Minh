@@ -5,10 +5,9 @@ from products.models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     """Hiển thị thông tin cơ bản của sản phẩm trong flash sale"""
-
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'image']  # tuỳ bạn có các field nào
+        fields = ['id', 'name', 'price' """'image'"""]  # tuỳ bạn có các field nào
 
 
 class FlashSaleProductSerializer(serializers.ModelSerializer):
@@ -20,7 +19,7 @@ class FlashSaleProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlashSaleProduct
-        fields = ['id', 'product', 'product_id', 'discount_percent']
+        fields = ['flash_sale_id', 'product_id']
         extra_kwargs = {'id': {'read_only': True}}
 
 
@@ -35,11 +34,12 @@ class FlashSaleSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
-            'start_time',
-            'end_time',
+            'discount_percent',
+            'start_date',
+            'end_date',
             'is_active',
             'created_at',
             'updated_at',
-            'products',
+            'products'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
