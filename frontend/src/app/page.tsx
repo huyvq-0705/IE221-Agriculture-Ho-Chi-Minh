@@ -2,24 +2,38 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { HeroSlider } from "@/components/hero-slider"
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://agrihcm.shop"
+
 export const metadata: Metadata = {
-  title: "AgriHCM – Practical guides for modern agriculture",
+  metadataBase: new URL(SITE_URL),
+  title: "AgriHCM – Hướng dẫn thực hành cho nông nghiệp hiện đại",
   description:
-    "AgriHCM shares practical, beginner-friendly guides on irrigation, soil health, and crop management—curated for Vietnamese growers.",
+    "AgriHCM chia sẻ các hướng dẫn thực hành, dễ hiểu về tưới tiêu, sức khỏe đất và quản lý cây trồng – dành cho người làm nông tại Việt Nam.",
   alternates: { canonical: "/" },
+  keywords: [
+    "AgriHCM",
+    "nông nghiệp hiện đại",
+    "tưới tiêu",
+    "sức khỏe đất",
+    "quản lý cây trồng",
+    "hướng dẫn nông nghiệp",
+    "blog AgriHCM",
+  ],
   openGraph: {
-    title: "AgriHCM – Practical guides for modern agriculture",
+    type: "website",
+    locale: "vi_VN",
+    title: "AgriHCM – Hướng dẫn thực hành cho nông nghiệp hiện đại",
     description:
-      "Beginner-friendly tips on irrigation, soil, and crops—curated for Vietnamese growers.",
+      "Mẹo hay và hướng dẫn dễ hiểu về tưới tiêu, đất và cây trồng – được biên soạn bởi AgriHCM.",
     url: "/",
     siteName: "AgriHCM",
-    images: [{ url: "/og-home.png" }], 
+    images: [{ url: "/og-home.png" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AgriHCM – Practical guides for modern agriculture",
+    title: "AgriHCM – Hướng dẫn thực hành cho nông nghiệp hiện đại",
     description:
-      "Beginner-friendly tips on irrigation, soil, and crops—curated for Vietnamese growers.",
+      "Hướng dẫn và mẹo nông nghiệp dễ hiểu do AgriHCM biên soạn: tưới tiêu, đất, cây trồng.",
   },
 }
 
@@ -54,7 +68,7 @@ async function getBlogs(): Promise<BlogItem[]> {
 
 function formatDate(iso: string) {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -70,15 +84,15 @@ export default async function HomePage() {
   const slides = [
     {
       src: "https://plus.unsplash.com/premium_photo-1664297279674-e096752abf47?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      alt: "Irrigated green fields at sunrise",
+      alt: "Cánh đồng xanh được tưới lúc bình minh – AgriHCM",
     },
     {
       src: "https://images.unsplash.com/photo-1617985562309-2aa7781f1608?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      alt: "Hands holding healthy soil and seedling",
+      alt: "Đôi tay nâng cây non và đất khỏe – AgriHCM",
     },
     {
       src: "https://images.unsplash.com/photo-1650449339582-ffc4451ab53c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      alt: "Farm landscape with irrigation lines",
+      alt: "Cảnh quan trang trại với hệ thống tưới – AgriHCM",
     },
   ]
 
@@ -90,17 +104,22 @@ export default async function HomePage() {
       {/* Blog previews */}
       <section className="mt-10">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold text-emerald-900">Latest Guides</h2>
+          <h2 className="text-2xl font-semibold text-emerald-900">
+            Hướng dẫn mới nhất từ AgriHCM
+          </h2>
           <Link
             href="/blog"
             className="text-sm font-medium text-emerald-700 hover:underline"
+            aria-label="Xem tất cả bài viết trên blog AgriHCM"
           >
-            View all →
+            Xem tất cả bài viết →
           </Link>
         </div>
 
         {posts.length === 0 ? (
-          <p className="text-sm text-gray-600">No posts yet.</p>
+          <p className="text-sm text-gray-600">
+            Hiện chưa có bài viết trên AgriHCM.
+          </p>
         ) : (
           <ul className="space-y-6">
             {posts.map((post) => (
@@ -108,6 +127,7 @@ export default async function HomePage() {
                 <Link
                   href={`/blog/${post.slug}`}
                   className="group block overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition hover:shadow-md"
+                  aria-label={`Đọc bài: ${post.title} – Blog AgriHCM`}
                 >
                   <div className="flex flex-col sm:flex-row">
                     {/* Image (left) with date badge */}
@@ -115,14 +135,14 @@ export default async function HomePage() {
                       {post.cover_image_url ? (
                         <img
                           src={post.cover_image_url}
-                          alt={post.cover_image_alt || post.title}
+                          alt={post.cover_image_alt || `${post.title} – AgriHCM`}
                           className="h-56 w-full object-cover sm:h-full"
                           loading="lazy"
                           decoding="async"
                         />
                       ) : (
                         <div className="flex h-56 w-full items-center justify-center bg-emerald-50 text-emerald-700 sm:h-full">
-                          No image
+                          Chưa có ảnh
                         </div>
                       )}
 
@@ -142,7 +162,7 @@ export default async function HomePage() {
                         </p>
                       )}
                       <div className="mt-4 text-sm font-medium text-emerald-700">
-                        Read more →
+                        Đọc tiếp →
                       </div>
                     </div>
                   </div>
