@@ -20,7 +20,7 @@ export function HeroSlider({
     [count]
   )
 
-  // auto-rotate
+  // tự động chuyển slide
   useEffect(() => {
     const id = setInterval(() => setIndex((i) => (i + 1) % count), intervalMs)
     return () => clearInterval(id)
@@ -30,14 +30,14 @@ export function HeroSlider({
 
   return (
     <section className="relative mx-auto mt-4 w-full max-w-7xl overflow-hidden rounded-3xl border border-emerald-100 shadow-xl">
-      {/* image */}
+      {/* ảnh */}
       <div className="relative h-[46vh] min-h-[18rem] w-full">
-        {/* Crossfade with opacity */}
+        {/* chuyển mờ dần bằng opacity */}
         {slides.map((s, i) => (
           <img
             key={s.src}
             src={s.src}
-            alt={s.alt || `Slide ${i + 1}`}
+            alt={s.alt || `Hình ${i + 1}`}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
               i === index ? "opacity-100" : "opacity-0"
             }`}
@@ -45,43 +45,45 @@ export function HeroSlider({
             decoding="async"
           />
         ))}
-        {/* overlay */}
+        {/* lớp phủ */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 z-10 p-6 md:p-10">
           <h1 className="text-balance text-3xl font-semibold leading-tight text-white md:text-4xl">
-            Smarter, sustainable farming—season after season.
+            Canh tác thông minh, bền vững — qua từng mùa vụ.
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-white/90 md:text-base">
-            Field-ready guides to save water, improve soil, and boost yields.
+            Hướng dẫn sẵn sàng áp dụng giúp tiết kiệm nước, cải thiện đất và tăng năng suất.
           </p>
         </div>
 
-        {/* controls */}
+        {/* nút điều hướng */}
         <button
-          aria-label="Previous slide"
+          aria-label="Slide trước"
           onClick={() => go(-1)}
           className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
         >
           <ChevronLeft className="h-5 w-5 text-emerald-700" />
         </button>
         <button
-          aria-label="Next slide"
+          aria-label="Slide tiếp"
           onClick={() => go(1)}
           className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
         >
           <ChevronRight className="h-5 w-5 text-emerald-700" />
         </button>
 
-        {/* dots */}
+        {/* dấu chấm */}
         <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 shadow">
             {slides.map((_s, i) => (
               <button
                 key={i}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={`Chuyển đến slide ${i + 1}`}
                 onClick={() => setIndex(i)}
                 className={`h-2.5 w-2.5 rounded-full transition ${
-                  i === index ? "bg-emerald-600" : "bg-emerald-200 hover:bg-emerald-300"
+                  i === index
+                    ? "bg-emerald-600"
+                    : "bg-emerald-200 hover:bg-emerald-300"
                 }`}
               />
             ))}
