@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Star, ShoppingCart, Package, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ProductCarousel from "@/components/product_carousel";
+import ProductRating from "@/components/ProductRating";
 
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -292,6 +293,24 @@ export default async function ProductPage({ params }: Props) {
           </CardContent>
         </Card>
 
+        {/* Đánh giá sản phẩm */}
+        <Card>
+          <CardContent className="p-6 md:p-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
+                <div className="flex items-center gap-1 text-gray-500">
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <ProductRating productId={product.id} />
+              
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Sản phẩm cùng danh mục */}
         {categoryProducts.length > 0 && (
           <section className="space-y-6">
@@ -309,6 +328,8 @@ export default async function ProductPage({ params }: Props) {
             <ProductCarousel products={categoryProducts} />
           </section>
         )}
+
+        
 
         {/* Sản phẩm nổi bật */}
         {featuredProducts.length > 0 && (

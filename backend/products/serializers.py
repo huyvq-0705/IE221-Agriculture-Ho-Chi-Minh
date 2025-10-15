@@ -5,8 +5,8 @@ from decimal import Decimal
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-
-from .models import Category, Product, ProductReview, ProductImage
+from django.db.models import Avg
+from .models import Category, Product, ProductReview, ProductImage, ProductRating 
 
 
 # -------- Category Serializers --------
@@ -294,3 +294,20 @@ class ProductSoftDeleteSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+
+# -------- Rating Serializers --------
+class ProductRatingSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = ProductRating
+        fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class ProductRatingDetailSerializer(ProductRatingSerializer):
+    class Meta(ProductRatingSerializer.Meta):
+        fields = ['id', 'rating', 'comment', 'user', 'created_at']
