@@ -1,6 +1,6 @@
 from __future__ import annotations
 from django.urls import path
-from products.views import CategoryListAPIView, CategoryDetailView, CategoryListCreateView, ProductListAPIView, ProductDetailAPIView
+from products.views import CategoryListAPIView, CategoryDetailView, CategoryListCreateView, ProductListAPIView, ProductDetailAPIView, InstantProductSearchAPIView, AdminProductListCreateView, AdminProductDetailView
 
 app_name = 'products'
 
@@ -33,25 +33,25 @@ urlpatterns = [
         'api/categories/', CategoryListAPIView.as_view(),
         name='api_category_list',
     ),
-    # path(
-    #     'api/admin/categories/', CategoryListCreateView.as_view(),
-    #     name='admin_category_list_create',
-    # ),
+    path(
+        'api/admin/categories/', CategoryListCreateView.as_view(),
+        name='admin_category_list_create',
+    ),
     path(
         'api/admin/categories/<slug:slug>/', CategoryDetailView.as_view(),
         name='admin_category_detail',
     ),
-    # path(
-    #     'api/admin/products/', views.AdminProductListCreateView.as_view(),
-    #     name='admin_product_list_create',
-    # ),
-    # path(
-    #     'api/admin/products/<int:pk>/', views.AdminProductDetailView.as_view(),
-    #     name='admin_product_detail',
-    # ),
-    # path(
-    #     'api/search/products/',
-    #     views.InstantProductSearchAPIView.as_view(),
-    #     name='instant_product_search',
-    # ),
+    path(
+        'api/admin/products/', AdminProductListCreateView.as_view(),
+        name='admin_product_list_create',
+    ),
+    path(
+        'api/admin/products/<slug:slug>/', AdminProductDetailView.as_view(),
+        name='admin_product_detail',
+    ),
+    path(
+        'api/search/products/',
+        InstantProductSearchAPIView.as_view(),
+        name='instant_product_search',
+    ),
 ]

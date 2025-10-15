@@ -89,6 +89,14 @@ export default function Navbar() {
                   Liên hệ
                 </Link>
               </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link
+                  href="/carts"
+                  className="text-sm font-medium text-gray-700 hover:text-emerald-700 hover:underline underline-offset-4 transition-colors"
+                >
+                  Giỏ hàng
+                </Link>
+              </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
 
