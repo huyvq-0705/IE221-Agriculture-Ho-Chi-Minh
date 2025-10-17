@@ -5,7 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -65,9 +66,11 @@ class FlashSaleDetailAPIView(CsrfExemptAPIView, generics.RetrieveAPIView):
 
 class FlashSaleCreateAPIView(CsrfExemptAPIView, generics.CreateAPIView):
     """Tạo flash sale mới, chỉ admin"""
+    queryset = FlashSale.objects.all().order_by("-created_at")
     serializer_class = FlashSaleSerializer
-    # permission_classes = [IsAdminUser]
-    queryset = FlashSale.objects.all()
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    pagination_class = FlashSalePagination
 
 
 class FlashSaleUpdateAPIView(CsrfExemptAPIView, generics.UpdateAPIView):

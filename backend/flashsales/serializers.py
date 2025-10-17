@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import FlashSale, FlashSaleProduct
 from products.models import Product
+from django.utils.translation import gettext_lazy as _
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -40,6 +41,22 @@ class FlashSaleSerializer(serializers.ModelSerializer):
             'is_active',
             'created_at',
             'updated_at',
-            'products'
+            'products',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        
+    def validate_price(self, value):
+        """Must have a name"""
+        if len(value.replace(" ", "")) == 0:
+            raise serializers.ValidationError(
+                _('Flash sale must have a name.')
+            )
+        return value
+    def validate_price(self, value):
+        """Validate discount percent is positive"""
+        if value <= 0:
+            raise serializers.ValidationError(
+                _('Percent must be greater than 0.')
+            )
+        return value
+    
