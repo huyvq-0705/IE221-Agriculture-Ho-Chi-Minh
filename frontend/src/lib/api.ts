@@ -11,7 +11,7 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.non_field_errors?.[0] || 'An error occurred');
+    throw new Error(errorData.non_field_errors?.[0] || errorData.error || 'An error occurred');
   }
 
   if (response.status === 204 || response.headers.get('Content-Length') === '0') {
