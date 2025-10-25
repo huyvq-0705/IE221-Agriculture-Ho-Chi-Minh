@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.pagination import PageNumberPagination
 from .models import Coupon
-from .serializers import CouponSerializer
+from .serializers import CouponSerializer, CouponDetailSerializer
 
 class CouponPagination(PageNumberPagination):
     page_size = 10
@@ -27,19 +28,20 @@ class CouponDetailAPIView(generics.RetrieveAPIView):
     Ai cũng có thể xem chi tiết 1 coupon cụ thể.
     """
     queryset = Coupon.objects.all()
-    serializer_class = CouponSerializer
+    serializer_class = CouponDetailSerializer
     permission_classes = [AllowAny]
 
 
 # --- ADMIN API ---
-class AdminCouponCreateAPIView(generics.CreateAPIView):
+class AdminCouponCreateAPIView(generics.ListCreateAPIView):
     """
-    POST /api/admin/coupons/
+    GET/POST /api/admin/coupons/
     Chỉ admin được thêm coupon mới.
     """
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
-    permission_classes = [IsAdminUser]
+    #authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 
 class AdminCouponUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -49,5 +51,6 @@ class AdminCouponUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
-    permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 

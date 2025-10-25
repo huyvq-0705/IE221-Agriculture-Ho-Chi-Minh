@@ -19,3 +19,9 @@ class CouponSerializer(serializers.ModelSerializer):
             attrs['max_discount_amount'] = None
 
         return attrs
+
+class CouponDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = '__all__'
+        read_only_fields = ["id", "slug", "created_at", "updated_at"]
