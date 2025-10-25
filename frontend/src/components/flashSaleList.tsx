@@ -7,7 +7,7 @@ const FlashSaleList = () => {
       title: "3.10 Mega Sale",
       discount: 10,
       startDate: "10/3/2025, 12:00 AM",
-      endDate: "10/10/2026, 12:00 AM",
+      endDate: "10/10/2026, 01:00 PM",
       remaining: "08:00:12",
       status: true,
       productsCount: 5,
