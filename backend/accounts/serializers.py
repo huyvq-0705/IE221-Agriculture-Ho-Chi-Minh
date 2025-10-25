@@ -21,18 +21,31 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        if User.objects.filter(username=attrs['username']).exists():
-            raise serializers.ValidationError("Username này đã tồn tại.")
-        
-        if User.objects.filter(email=attrs['email']).exists():
+        email = attrs['email']
+        username = attrs['username']
+
+        # Block only if an ACTIVE user already uses the email/username
+        if User.objects.filter(email=email, is_active=True).exists():
             raise serializers.ValidationError("Email này đã được sử dụng.")
+
+        if User.objects.filter(username=username, is_active=True).exists():
+            raise serializers.ValidationError("Username này đã tồn tại.")
+
+        # If an inactive user exists, we'll update it in the view (no error here)
+        return attrs
 
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data, is_active=False)
         return user
 
+class OTPVerifySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=10)
+
+class OTPResendSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)

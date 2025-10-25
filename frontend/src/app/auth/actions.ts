@@ -66,9 +66,10 @@ export async function apiLogin(prevState: ActionState, formData: FormData): Prom
 
 export async function register(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const data = Object.fromEntries(formData);
+  const email = data.email as string;
 
   if (data.password !== data.confirm_password) {
-      return { message: "Passwords do not match." };
+      return { message: "Mật khẩu không khớp." };
   }
 
   try {
@@ -77,15 +78,49 @@ export async function register(prevState: ActionState, formData: FormData): Prom
           method: "POST",
           body: JSON.stringify(payload),
       });
-  } catch (error: unknown) {
+  } catch (error) {
       console.error("Registration failed:", error);
       if (error instanceof Error) {
         return { message: error.message };
       }
-      return { message: "An unknown error occurred during registration." };
+      return { message: "Lỗi không xác định xảy ra lúc đăng ký." };
   }
   
+  redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+}
+
+export async function verifyOtp(data: { email: string; otp: string }): Promise<ActionState> {
+  try {
+    await fetchApi("api/verify-otp/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+
+  } catch (error) {
+    console.error("OTP Verification failed:", error);
+    if (error instanceof Error) {
+      return { message: error.message };
+    }
+    return { message: "Đã xảy ra lỗi khi xác thực OTP." };
+  }
+
   redirect("/auth/login");
+}
+
+export async function resendOtp(email: string): Promise<ActionState> {
+  try {
+    await fetchApi("api/resend-otp/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    return { success: true, message: "Đã gửi lại mã OTP. Vui lòng kiểm tra email." };
+  } catch (error) {
+    console.error("Resend OTP failed:", error);
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Lỗi không xác định xảy ra khi gửi lại mã." };
+  }
 }
 
 export async function apiLogout() {
