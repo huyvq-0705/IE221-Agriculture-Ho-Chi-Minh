@@ -46,6 +46,29 @@ class Product(models.Model):
         ]
         ordering = ['-created_at']
 
+#-------- product ratting --------
+
+class ProductRating(models.Model):
+    RATING_CHOICES = (
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+    )
+    
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'product_ratings'
+        unique_together = ('product', 'user')  # Each user can rate a product only once
+        ordering = ['-created_at']
+
 #-------- product review --------
 
 class ProductReview(models.Model):
