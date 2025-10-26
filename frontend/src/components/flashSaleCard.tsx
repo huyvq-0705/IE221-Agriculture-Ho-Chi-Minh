@@ -27,11 +27,11 @@ const FlashSaleCard: React.FC<FlashSaleCardProps> = ({
         <span
           className={`text-xs font-medium px-2 py-1 rounded ${
             status === true
-              ? "bg-green-600 text-green-600"
-              : "bg-red-400 text-red-400"
+              ? "bg-green-600 text-white"
+              : "bg-red-400 text-white"
           }`}
         >
-          {status}
+          {status === true ? "ACTIVE" : "EXPIRED"}
         </span>
       </div>
 

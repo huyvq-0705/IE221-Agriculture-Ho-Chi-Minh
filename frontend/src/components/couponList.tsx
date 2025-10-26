@@ -1,37 +1,20 @@
 import React from "react";
 import CouponCard from "./couponCard";
 
-const CouponList = () => {
-  const sales = [
-    {
-      code: "NAMMOI",
-      discount: 10,
-      startDate: "10/3/2025, 12:00 AM",
-      endDate: "10/10/2026, 12:00 AM",
-      remaining: "08:00:12",
-      status: true,
-      productsCount: 5,
-    },
-    {
-      code: "Hello",
-      discount: 25,
-      startDate: "9/9/2025, 12:00 AM",
-      endDate: "9/10/2025, 12:00 PM",
-      remaining: "00:00:00",
-      status: false,
-      productsCount: 3,
-    },
-    {
-      code: "PHANBON",
-      discount: 25,
-      startDate: "8/29/2025, 8:00 AM",
-      endDate: "8/29/2025, 12:00 PM",
-      remaining: "00:00:00",
-      status: true,
-      productsCount: 4,
-    },
-  ];
+interface Coupon {
+  code: string;
+  discount: number;
+  expires_at: string;
+  remaining: string;
+  status: boolean;
+  productsCount: number;
+}
 
+interface CouponListProps {
+  sales: Coupon[];
+}
+
+const CouponList: React.FC<CouponListProps> = ({ sales }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
@@ -61,3 +44,4 @@ const CouponList = () => {
 };
 
 export default CouponList;
+

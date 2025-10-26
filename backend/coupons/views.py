@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.pagination import PageNumberPagination
 from .models import Coupon
-from .serializers import CouponSerializer, CouponDetailSerializer
+from .serializers import CouponSerializer, CouponDetailSerializer, PublicCouponDetailSerializer
 
 class CouponPagination(PageNumberPagination):
     page_size = 10
@@ -25,10 +25,10 @@ class CouponListAPIView(generics.ListAPIView):
 class CouponDetailAPIView(generics.RetrieveAPIView):
     """
     GET /api/coupons/<id>/
-    Ai cũng có thể xem chi tiết 1 coupon cụ thể.
+    Lấy chi tiết 1 coupon cụ thể.
     """
     queryset = Coupon.objects.all()
-    serializer_class = CouponDetailSerializer
+    serializer_class = PublicCouponDetailSerializer
     permission_classes = [AllowAny]
 
 
@@ -40,7 +40,7 @@ class AdminCouponCreateAPIView(generics.ListCreateAPIView):
     """
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
-    #authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
 
 
@@ -50,7 +50,7 @@ class AdminCouponUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     Admin có thể xem, cập nhật hoặc xóa coupon.
     """
     queryset = Coupon.objects.all()
-    serializer_class = CouponSerializer
+    serializer_class = CouponDetailSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
 

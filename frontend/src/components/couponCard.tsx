@@ -1,49 +1,53 @@
 import React from "react";
-import { Clock, Percent, Eye, Edit2, Trash2 } from "lucide-react";
+import { Clock, Percent, Eye, Edit2, Trash2, ShoppingCart } from "lucide-react";
 
 interface CouponProps {
   code: string;
   discount: number;
-  startDate: string;
-  endDate: string;
+  expires_at: string;
   remaining: string;
   status: boolean;
+  productsCount: number;
 }
 
 const CouponCard: React.FC<CouponProps> = ({
   code,
   discount,
-  startDate,
-  endDate,
+  expires_at,
   remaining,
   status,
+  productsCount,
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-2xl p-5 border border-gray-200 w-full max-w-md">
+    <div className="bg-white shadow-sm rounded-2xl p-6 border border-gray-200 transition hover:shadow-md">
       <div className="flex justify-between items-start mb-2">
         <h2 className="font-semibold text-lg">{code}</h2>
         <span
-          className={`text-xs font-medium px-2 py-1 rounded ${
-            status === true
-              ? "bg-green-600 text-green-600"
-              : "bg-red-400 text-red-400"
+          className={`text-xs font-semibold px-2 py-1 rounded-full ${
+            status
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
           }`}
         >
-          {status}
+          {status ? "ACTIVE" : "EXPIRED"}
         </span>
       </div>
 
       <div className="text-sm text-gray-600 space-y-1 mb-3">
         <p className="flex items-center gap-1">
-          <Percent size={14} /> {discount.toFixed(2)}
+          <Percent size={14} /> {discount.toFixed(2)}%
         </p>
         <p className="flex items-center gap-1">
-          <Clock size={14} /> {startDate} → {endDate}
+          <Clock size={14} /> Expires at: {expires_at}
         </p>
       </div>
 
-      <p className="text-xs text-gray-500 mb-3">
+      <p className="text-xs text-gray-500 mb-2">
         Remaining: <span className="font-mono text-gray-700">{remaining}</span>
+      </p>
+
+      <p className="text-xs text-gray-500 mb-5 flex items-center gap-1">
+        <ShoppingCart size={13} /> {productsCount} products
       </p>
 
       <div className="flex justify-between gap-2">
