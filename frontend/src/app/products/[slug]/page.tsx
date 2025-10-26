@@ -8,9 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Star, ShoppingCart, Package, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ShoppingCart, Package, TrendingUp, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ProductCarousel from "@/components/product_carousel";
+import { useCart } from '@/contexts/CartContext';
+import { AddToCartButton } from "@/components/AddToCartButton"
+// import { BuyNowButton } from "@/components/BuyNowButton" // Tạo component này nếu cần
 import ProductRating from "@/components/ProductRating";
 
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
@@ -102,7 +105,7 @@ export default async function ProductPage({ params }: Props) {
       const num = typeof price === "string" ? parseFloat(price) : price;
       return num > 0 ? `${num.toLocaleString("vi-VN")}₫` : "Liên hệ";
     };
-
+    
     const mainImage =
       product.primary_image ||
       (product.images && product.images.length > 0
@@ -270,23 +273,16 @@ export default async function ProductPage({ params }: Props) {
 
                 {/* Action Buttons */}
                 <div className="flex gap-4 pt-4">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="flex-1 border-emerald-700 text-emerald-700 hover:bg-emerald-50"
-                    disabled={!product.is_in_stock || product.stock_quantity === 0}
-                  >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Thêm vào giỏ
-                  </Button>
+                  <AddToCartButton 
+                    productId={product.id}
+                    isInStock={product.is_in_stock || false}
+                    stockQuantity={product.stock_quantity || 0}
+                  />
 
-                  <Button
-                    size="lg"
-                    className="flex-1 bg-emerald-700 hover:bg-emerald-800"
+                  {/* <BuyNowButton 
+                    product={product}
                     disabled={!product.is_in_stock || product.stock_quantity === 0}
-                  >
-                    Mua ngay
-                  </Button>
+                  /> */}
                 </div>
               </div>
             </div>

@@ -6,15 +6,15 @@ import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 
 export default function CartButton() {
-  const { cartSummary } = useCart();
+  const { itemCount } = useCart();
 
   return (
-    <Link href="/cart">
+    <Link href="/carts">
       <Button variant="outline" size="icon" className="relative">
         <ShoppingCart className="w-5 h-5" />
-        {cartSummary.total_items > 0 && (
+        {itemCount > 0 && (
           <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-            {cartSummary.total_items > 99 ? '99+' : cartSummary.total_items}
+            {itemCount > 99 ? '99+' : itemCount}
           </span>
         )}
       </Button>

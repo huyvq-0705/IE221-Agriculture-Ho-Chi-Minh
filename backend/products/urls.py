@@ -54,6 +54,10 @@ urlpatterns = [
         name='admin_category_list_create',
     ),
     path(
+        'api/admin/categories/', CategoryListCreateView.as_view(),
+        name='admin_category_list_create',
+    ),
+    path(
         'api/admin/categories/<slug:slug>/', CategoryDetailView.as_view(),
         name='admin_category_detail',
     ),
@@ -70,4 +74,18 @@ urlpatterns = [
         InstantProductSearchAPIView.as_view(),
         name='instant_product_search',
     ),
+    path(
+        'api/admin/products/', AdminProductListCreateView.as_view(),
+        name='admin_product_list_create',
+    ),
+    path(
+        'api/admin/products/<slug:slug>/', AdminProductDetailView.as_view(),
+        name='admin_product_detail',
+    ),
+    path(
+        'api/search/products/',
+        InstantProductSearchAPIView.as_view(),
+        name='instant_product_search',
+    ),
 ]
+
