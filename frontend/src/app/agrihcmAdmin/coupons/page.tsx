@@ -48,41 +48,53 @@ async function getCoupon(search = "", page = 1) {
   }
 }
 
-const CouponPage = () => {
-  const data = [
-    {
-      code: "NAMMOI",
-      discount: 10,
-      expires_at: "10/3/2025, 12:00 AM",
-      remaining: "08:00:12",
-      status: true,
-      productsCount: 5,
-    },
-    {
-      code: "Hello",
-      discount: 25,
-      expires_at: "9/9/2025, 12:00 AM",
-      remaining: "00:00:00",
-      status: false,
-      productsCount: 3,
-    },
-    {
-      code: "PHANBON",
-      discount: 25,
-      expires_at: "8/29/2025, 8:00 AM",
-      remaining: "00:00:00",
-      status: true,
-      productsCount: 4,
-    },
-  ];
+// const data = [
+//     {
+//       code: "NAMMOI",
+//       discount: 10,
+//       expires_at: "10/3/2025, 12:00 AM",
+//       remaining: "08:00:12",
+//       status: true,
+//       productsCount: 5,
+//     },
+//     {
+//       code: "Hello",
+//       discount: 25,
+//       expires_at: "9/9/2025, 12:00 AM",
+//       remaining: "00:00:00",
+//       status: false,
+//       productsCount: 3,
+//     },
+//     {
+//       code: "PHANBON",
+//       discount: 25,
+//       expires_at: "8/29/2025, 8:00 AM",
+//       remaining: "00:00:00",
+//       status: true,
+//       productsCount: 4,
+//     },
+//   ];
+
+export default async function CouponPage() {
+  const couponData = await getCoupon();
+  const coupons = couponData?.results || [];
+
+  // Chuyển dữ liệu API thành format phù hợp với CouponList
+  const formattedCoupons = coupons.map((c) => ({
+    id: c.id,
+    code: c.code,
+    discount: Number(c.discount_percent),
+    created_at: new Date(c.created_at).toLocaleString("vi-VN"),
+    expires_at: new Date(c.expires_at).toLocaleString("vi-VN"),
+    remaining: "—", // Có thể tính thời gian còn lại ở đây nếu muốn
+    status: c.is_active,
+  }));
 
   return (
     <div className="">
       <div className="max-w-7xl mx-auto">
-        <CouponList sales={data} />
+        <CouponList sales={formattedCoupons} />
       </div>
     </div>
   );
-};
-
-export default CouponPage;
+}

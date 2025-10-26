@@ -24,6 +24,7 @@ import {
   FileText,
   BarChart3,
   Settings,
+  TicketPercent,
 } from "lucide-react";
 
 type NavItem = {
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { label: "Orders", href: "/agrihcmAdmin/orders", icon: ShoppingCart },
   { label: "Users", href: "/agrihcmAdmin/users", icon: Users },
   { label: "Blogs", href: "/agrihcmAdmin/blogs", icon: FileText },
+  { label: "Coupons", href: "/agrihcmAdmin/coupons", icon: TicketPercent},
 ];
 
 function NavLink({
