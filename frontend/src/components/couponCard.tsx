@@ -1,6 +1,6 @@
 import React from "react";
 import { Clock, Percent, Eye, Edit2, Trash2, ShoppingCart } from "lucide-react";
-import { deleteCoupon,  updateCoupon} from "@/app/agrihcmAdmin/coupons/actions";
+import { deleteCoupon, updateCoupon } from "@/app/agrihcmAdmin/coupons/actions";
 
 interface CouponProps {
   id: number;
@@ -34,16 +34,17 @@ const CouponCard: React.FC<CouponProps> = ({
     }
   };
 
+  // Xóa coupon
+
   return (
     <div className="bg-white shadow-sm rounded-2xl p-6 border border-gray-200 transition hover:shadow-md">
       <div className="flex justify-between items-start mb-2">
         <h2 className="font-semibold text-lg">{code}</h2>
         <span
-          className={`text-xs font-semibold px-2 py-1 rounded-full ${
-            status
+          className={`text-xs font-semibold px-2 py-1 rounded-full ${status
               ? "bg-green-100 text-green-700"
               : "bg-red-100 text-red-700"
-          }`}
+            }`}
         >
           {status ? "ACTIVE" : "EXPIRED"}
         </span>
@@ -72,7 +73,7 @@ const CouponCard: React.FC<CouponProps> = ({
         <button className="flex-1 flex items-center justify-center gap-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 rounded-lg transition cursor-pointer">
           <Edit2 size={15} /> Edit
         </button>
-        <button 
+        <button
           onClick={handleDelete}
           className="flex-1 flex items-center justify-center gap-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 rounded-lg transition cursor-pointer"
         >

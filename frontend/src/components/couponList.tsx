@@ -1,7 +1,8 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import Link from "next/link";
 import CouponCard from "./couponCard";
-import { createCoupon } from "@/app/agrihcmAdmin/coupons/actions";
+import CreateCouponModal from "./createCouponModal";
 
 interface Coupon {
   id: number;
@@ -18,6 +19,12 @@ interface CouponListProps {
 }
 
 const CouponList: React.FC<CouponListProps> = ({ sales }) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleSuccess = () => {
+    window.location.reload(); // hoặc dùng router.refresh()
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
@@ -25,12 +32,19 @@ const CouponList: React.FC<CouponListProps> = ({ sales }) => {
           <h1 className="text-xl font-semibold">Coupons</h1>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm cursor-pointer">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm cursor-pointer">
             Refresh
           </button>
-          <button className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm cursor-pointer">
+
+          <Link
+            href="/agrihcmAdmin/coupons/new"
+            scroll={false} // quan trọng: để giữ trang chính phía dưới
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm cursor-pointer"
+          >
             + New Coupon
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -39,6 +53,10 @@ const CouponList: React.FC<CouponListProps> = ({ sales }) => {
           <CouponCard key={index} {...sale} />
         ))}
       </div>
+
+      {/* {showModal && (
+        <CreateCouponModal onClose={() => setShowModal(false)} onSuccess={handleSuccess} />
+      )} */}
     </div>
   );
 };

@@ -48,33 +48,6 @@ async function getCoupon(search = "", page = 1) {
   }
 }
 
-// const data = [
-//     {
-//       code: "NAMMOI",
-//       discount: 10,
-//       expires_at: "10/3/2025, 12:00 AM",
-//       remaining: "08:00:12",
-//       status: true,
-//       productsCount: 5,
-//     },
-//     {
-//       code: "Hello",
-//       discount: 25,
-//       expires_at: "9/9/2025, 12:00 AM",
-//       remaining: "00:00:00",
-//       status: false,
-//       productsCount: 3,
-//     },
-//     {
-//       code: "PHANBON",
-//       discount: 25,
-//       expires_at: "8/29/2025, 8:00 AM",
-//       remaining: "00:00:00",
-//       status: true,
-//       productsCount: 4,
-//     },
-//   ];
-
 export default async function CouponPage() {
   const couponData = await getCoupon();
   const coupons = couponData?.results || [];
