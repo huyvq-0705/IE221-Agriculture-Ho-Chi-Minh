@@ -6,8 +6,7 @@ class User(AbstractUser):
     gender = models.CharField(max_length=10, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
-    # created_at, updated_at => nên dùng auto_now/auto_now_add thay vì default=NOW()
+    avatar = models.URLField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

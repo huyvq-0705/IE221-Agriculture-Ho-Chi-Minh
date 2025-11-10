@@ -8,9 +8,14 @@ interface User {
   id: number;
   username: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  avatar?: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar: string | undefined;
+  phone_number: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  address: string | null;
+  date_joined: string;
 }
 
 interface AuthContextType {
@@ -25,6 +30,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const checkUserSession = useCallback(async () => {
     setIsLoading(true);
@@ -43,8 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    checkUserSession();
-  }, [checkUserSession]);
+    if (hasMounted) {
+      checkUserSession();
+    }
+  }, [hasMounted, checkUserSession]);
 
   const logout = async () => {
     try {
@@ -57,6 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = { user, isLoading, logout, checkUserSession };
+
+  if (!hasMounted) {
+    return null;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
