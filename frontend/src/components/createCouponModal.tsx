@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { createCoupon } from "@/app/agrihcmAdmin/coupons/actions";
 
@@ -19,6 +19,18 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
   });
   const [loading, setLoading] = useState(false);
 
+  // ✅ Thêm state cho popup thông báo
+  const [message, setMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
+
+  // Tự ẩn popup sau 3 giây
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -34,17 +46,21 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
     setLoading(false);
 
     if (result.ok) {
-      alert("Coupon created successfully!");
-      onSuccess();
-      onClose();
+      setIsSuccess(true);
+      setMessage("Coupon created successfully!");
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1500);
     } else {
-      alert(`Failed to create coupon: ${result.message}`);
+      setIsSuccess(false);
+      setMessage(`Failed to create coupon: ${result.message}`);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md relative">
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md relative transition-all duration-300 scale-100">
         {/* Nút đóng */}
         <button
           onClick={onClose}
@@ -77,6 +93,7 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
             <input
               name="discount_percent"
               type="number"
+              min="0"
               step="0.01"
               value={form.discount_percent}
               onChange={handleChange}
@@ -92,6 +109,7 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
               <input
                 name="max_discount_amount"
                 type="number"
+                min="0"
                 value={form.max_discount_amount}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
@@ -103,6 +121,7 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
               <input
                 name="min_purchase_amount"
                 type="number"
+                min="1"
                 value={form.min_purchase_amount}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
@@ -119,7 +138,6 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
               min="0"
               value={form.time_used}
               onChange={handleChange}
-              required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
               placeholder="Enter number of allowed uses"
             />
@@ -148,6 +166,16 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
           </button>
         </form>
       </div>
+
+      {/* Popup thông báo */}
+      {message && (
+        <div
+          className={`fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm text-white shadow-lg transition-opacity duration-300 ${isSuccess ? "bg-emerald-600" : "bg-red-600"
+            } animate-fade-in`}
+        >
+          {message}
+        </div>
+      )}
     </div>
   );
 };

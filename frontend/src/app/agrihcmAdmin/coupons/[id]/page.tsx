@@ -32,7 +32,7 @@ export default function CreateCouponModalPage() {
         if (result.ok) {
             alert("Coupon created successfully!");
             router.back(); // đóng popup, trở về danh sách
-            router.refresh()
+            router.refresh();
         } else {
             alert(`Failed: ${result.message}`);
         }
@@ -71,6 +71,7 @@ export default function CreateCouponModalPage() {
                         <input
                             name="discount_percent"
                             type="number"
+                            min="0"
                             step="0.01"
                             value={form.discount_percent}
                             onChange={handleChange}
@@ -86,6 +87,7 @@ export default function CreateCouponModalPage() {
                             <input
                                 name="max_discount_amount"
                                 type="number"
+                                min="0"
                                 value={form.max_discount_amount}
                                 onChange={handleChange}
                                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
@@ -97,6 +99,7 @@ export default function CreateCouponModalPage() {
                             <input
                                 name="min_purchase_amount"
                                 type="number"
+                                min="0"
                                 value={form.min_purchase_amount}
                                 onChange={handleChange}
                                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
@@ -115,7 +118,6 @@ export default function CreateCouponModalPage() {
                             onChange={handleChange}
                             required
                             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
-                            placeholder="Enter number of allowed uses"
                         />
                     </div>
 

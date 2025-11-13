@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import CouponCard from "./couponCard";
 import CreateCouponModal from "./createCouponModal";
 
@@ -38,13 +37,12 @@ const CouponList: React.FC<CouponListProps> = ({ sales }) => {
             Refresh
           </button>
 
-          <Link
-            href="/agrihcmAdmin/coupons/new"
-            scroll={false} // quan trọng: để giữ trang chính phía dưới
+          <button
+            onClick={() => setShowModal(true)}
             className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm cursor-pointer"
           >
             + New Coupon
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -54,9 +52,9 @@ const CouponList: React.FC<CouponListProps> = ({ sales }) => {
         ))}
       </div>
 
-      {/* {showModal && (
+      {showModal && (
         <CreateCouponModal onClose={() => setShowModal(false)} onSuccess={handleSuccess} />
-      )} */}
+      )}
     </div>
   );
 };

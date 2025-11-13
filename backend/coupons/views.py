@@ -11,17 +11,6 @@ class CouponPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 50
 
-# --- PUBLIC API ---
-# class CouponListAPIView(generics.ListAPIView):
-#     """
-#     GET /api/coupons/
-#     Ai cũng có thể xem danh sách coupon.
-#     """
-#     queryset = Coupon.objects.filter(is_active=True)
-#     serializer_class = CouponSerializer
-#     permission_classes = [AllowAny]
-
-
 class CouponDetailAPIView(generics.RetrieveAPIView):
     """
     GET /api/coupons/<id>/
@@ -36,7 +25,7 @@ class CouponDetailAPIView(generics.RetrieveAPIView):
 class AdminCouponCreateAPIView(generics.ListCreateAPIView):
     """
     GET/POST /api/admin/coupons/
-    Chỉ admin được thêm coupon mới.
+    Chỉ admin được thêm coupon mới và xem danh sách coupon.
     """
     queryset = Coupon.objects.all().order_by("-created_at")
     serializer_class = CouponSerializer
