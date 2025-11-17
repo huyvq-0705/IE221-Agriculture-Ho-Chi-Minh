@@ -38,6 +38,27 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def _generate_unique_slug(self):
+        """
+        Create a slug from the product name; append a numeric suffix if necessary
+        to keep it unique.
+        """
+        base = slugify(self.name) or "product"
+        slug_candidate = base
+        counter = 0
+
+        # loop until unique (exclude self when updating)
+        while Product.objects.filter(slug=slug_candidate).exclude(pk=self.pk).exists():
+            counter += 1
+            slug_candidate = f"{base}-{counter}"
+
+        return slug_candidate
+
+    def save(self, *args, **kwargs):
+        # If slug is blank or empty, generate it from the name
+        if not self.slug or str(self.slug).strip() == "":
+            self.slug = self._generate_unique_slug()
+        super().save(*args, **kwargs)
     class Meta:
         db_table = 'products'
         indexes = [

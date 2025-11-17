@@ -1,29 +1,16 @@
+# orders/serializers.py
 from decimal import Decimal
 from rest_framework import serializers
 from .models import Order, OrderItem, OrderStatus, CancelReason, RejectReason, PaymentMethod
 from products.models import Product
 
-class OrderItemCreateSerializer(serializers.Serializer):
-    product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(min_value=1)
-
-class OrderCreateSerializer(serializers.Serializer):
-    customer_name = serializers.CharField()
-    customer_phone = serializers.CharField()
-    customer_email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
-    customer_address = serializers.CharField()
-    payment_method = serializers.ChoiceField(choices=PaymentMethod.choices, default=PaymentMethod.COD)
-    items = OrderItemCreateSerializer(many=True)
-
-    def validate_items(self, value):
-        if not value:
-            raise serializers.ValidationError("Items cannot be empty.")
-        return value
+# --- Output serializers ---
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ["id", "product", "product_name", "quantity", "price_at_order", "line_total"]
+
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
@@ -42,14 +29,30 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "subtotal_amount", "discount_amount", "final_amount", "pricing_snapshot", "created_at", "status"]
 
+
+# --- Input validators (client sends only order info; items come from cart) ---
+
+class OrderCreateSerializer(serializers.Serializer):
+    """
+    Client should POST only customer details and payment method.
+    Items are taken from the user's cart server-side.
+    """
+    customer_name = serializers.CharField()
+    customer_phone = serializers.CharField()
+    customer_email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    customer_address = serializers.CharField()
+    payment_method = serializers.ChoiceField(choices=PaymentMethod.choices, default=PaymentMethod.COD)
+
+
 class OrderCancelSerializer(serializers.Serializer):
     cancel_reason = serializers.ChoiceField(choices=CancelReason.choices)
+
 
 class AdminOrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ["status", "reject_reason", "payment_method"]
-    
+
     def validate(self, attrs):
         status = attrs.get("status")
         reject_reason = attrs.get("reject_reason")

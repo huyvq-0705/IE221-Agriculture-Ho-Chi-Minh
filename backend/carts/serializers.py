@@ -3,12 +3,42 @@ from .models import Cart, CartItem
 from products.models import Product
 
 
-class CartItemProductSerializer(serializers.ModelSerializer):
-    """Minimal product info for cart items"""
-    class Meta:
-        model = Product
-        fields = ['id', 'slug', 'name', 'price', 'primary_image', 'is_in_stock', 'stock_quantity']
+class CartItemProductSerializer(serializers.Serializer):
+    """
+    Safe product representation for cart responses.
+    Uses a plain Serializer (not ModelSerializer) to avoid DRF complaining
+    if the Product model lacks optional fields like `primary_image`.
+    """
+    id = serializers.IntegerField()
+    slug = serializers.CharField()
+    name = serializers.CharField()
+    price = serializers.DecimalField(max_digits=12, decimal_places=2)
+    primary_image = serializers.SerializerMethodField()
+    is_in_stock = serializers.BooleanField()
+    stock_quantity = serializers.IntegerField(allow_null=True)
 
+    def get_primary_image(self, obj: Product):
+        if hasattr(obj, "primary_image") and obj.primary_image:
+            try:
+                return getattr(obj.primary_image, "url", str(obj.primary_image))
+            except Exception:
+                return str(obj.primary_image)
+
+        if hasattr(obj, "images"):
+            try:
+                first = obj.images.all().first()
+                if first:
+                    return getattr(first, "image_url", None) or getattr(first, "image", None) or getattr(first, "file", None) or None
+            except Exception:
+                pass
+
+        for attr in ("primary_image_url", "image_url", "image"):
+            if hasattr(obj, attr):
+                val = getattr(obj, attr)
+                if val:
+                    return getattr(val, "url", str(val)) if hasattr(val, "url") else str(val)
+
+        return None
 
 class CartItemSerializer(serializers.ModelSerializer):
     """Cart item with product details"""

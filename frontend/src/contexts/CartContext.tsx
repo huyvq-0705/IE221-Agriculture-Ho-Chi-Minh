@@ -1,267 +1,162 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getAccessToken } from '@/lib/auth-client';
+import React, { createContext, useContext, useState, useCallback } from "react";
 
-interface CartItem {
+export interface CartItem {
   id: number;
-  product: {
-    id: number;
-    name: string;
-    slug: string;
-    price: string;
-    primary_image?: string;
-  };
+  product_id: number;
+  name: string;
+  price: string;
+  image?: string | null;
   quantity: number;
+  pending?: boolean;
 }
 
-interface CartContextType {
+interface CartState {
   items: CartItem[];
-  itemCount: number;
-  totalPrice: number;
-  isLoading: boolean;
-  addToCart: (productId: number, quantity?: number) => Promise<void>;
-  removeFromCart: (itemId: number) => Promise<void>;
-  updateQuantity: (itemId: number, quantity: number) => Promise<void>;
-  clearCart: () => Promise<void>;
-  refreshCart: () => Promise<void>;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Fetch cart on mount
-  useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
-      refreshCart();
-    }
-  }, []);
-
-  const refreshCart = async () => {
-    const token = getAccessToken();
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${API_BASE}/api/cart/`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setItems(data.items || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch cart:', error);
-    }
-  };
-
-  const addToCart = async (productId: number, quantity: number = 1) => {
-    const token = getAccessToken();
-    if (!token) {
-      throw new Error('Unauthorized');
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/cart/items/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ product_id: productId, quantity }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized');
-        }
-        throw new Error('Failed to add to cart');
-      }
-
-      await refreshCart();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const removeFromCart = async (itemId: number) => {
-    const token = getAccessToken();
-    if (!token) throw new Error('Unauthorized');
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/cart/items/${itemId}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        await refreshCart();
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateQuantity = async (itemId: number, quantity: number) => {
-    const token = getAccessToken();
-    if (!token) throw new Error('Unauthorized');
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/cart/items/${itemId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ quantity }),
-      });
-
-      if (response.ok) {
-        await refreshCart();
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const clearCart = async () => {
-    const token = getAccessToken();
-    if (!token) throw new Error('Unauthorized');
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/cart/clear/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        setItems([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce(
-    (sum, item) => sum + parseFloat(item.product.price) * item.quantity,
-    0
-  );
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        itemCount,
-        totalPrice,
-        isLoading,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        refreshCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-}
-
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-}
-
-'use client';
-
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { fetchApi } from '@/lib/api';
-
-interface CartSummary {
   total_items: number;
   total_price: number;
 }
 
-interface CartContextType {
-  cartSummary: CartSummary;
-  refreshCart: () => Promise<void>;
-  addToCart: (productId: number, quantity?: number) => Promise<void>;
+interface CartContextValue {
+  cart: CartState;
+  itemCount: number;
   isLoading: boolean;
+  addToCartOptimistic: (payload: {
+    product_id: number;
+    name?: string;
+    price?: string;
+    image?: string | null;
+    quantity?: number;
+  }) => Promise<void>;
+  removeOptimisticItem: (tempId: number) => void;
+  refreshCart: () => Promise<void>;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartSummary, setCartSummary] = useState<CartSummary>({
+export function useCart() {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used inside CartProvider");
+  return ctx;
+}
+
+let tempIdCounter = -1;
+
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [cart, setCart] = useState<CartState>({
+    items: [],
     total_items: 0,
     total_price: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const refreshCart = async () => {
-    try {
-      const data = await fetchApi('api/cart/summary/', { method: 'GET' });
-      setCartSummary(data);
-    } catch (err) {
-      console.error('Failed to fetch cart summary:', err);
-      // If not authenticated, reset cart
-      if (err instanceof Error && err.message.includes('401')) {
-        setCartSummary({ total_items: 0, total_price: 0 });
-      }
-    }
+  const computeTotals = (items: CartItem[]) => {
+    const total_items = items.reduce((s, it) => s + it.quantity, 0);
+    const total_price = items.reduce((s, it) => s + parseFloat(it.price || "0") * it.quantity, 0);
+    return { total_items, total_price };
   };
 
-  const addToCart = async (productId: number, quantity: number = 1) => {
+  const refreshCart = useCallback(async () => {
     setIsLoading(true);
     try {
-      await fetchApi('api/cart/add/', {
-        method: 'POST',
-        body: JSON.stringify({ product_id: productId, quantity }),
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/cart/`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
-      await refreshCart();
+      if (!res.ok) throw new Error("Failed to load cart");
+      const data = await res.json();
+      const items: CartItem[] = data.items.map((it: any) => ({
+        id: it.id,
+        product_id: it.product.id,
+        name: it.product.name,
+        price: String(it.product.price),
+        image: it.product.primary_image ?? null,
+        quantity: it.quantity,
+        pending: false,
+      }));
+      const totals = computeTotals(items);
+      setCart({ items, ...totals });
     } catch (err) {
-      console.error('Failed to add to cart:', err);
-      throw err;
+      console.error("refreshCart failed", err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    refreshCart();
   }, []);
 
-  return (
-    <CartContext.Provider value={{ cartSummary, refreshCart, addToCart, isLoading }}>
-      {children}
-    </CartContext.Provider>
-  );
-}
+  const addToCartOptimistic = useCallback(async ({ product_id, name, price, image, quantity = 1 }: {
+    product_id: number;
+    name?: string;
+    price?: string;
+    image?: string | null;
+    quantity?: number;
+  }) => {
+    const tempId = tempIdCounter--;
+    const optimisticItem: CartItem = {
+      id: tempId,
+      product_id,
+      name: name ?? "Sản phẩm",
+      price: price ?? "0",
+      image: image ?? null,
+      quantity,
+      pending: true,
+    };
+    setCart(prev => {
+      const newItems = [...prev.items, optimisticItem];
+      const totals = computeTotals(newItems);
+      return { items: newItems, ...totals };
+    });
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/cart/add/`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id, quantity }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody?.error || errBody?.detail || `Add to cart failed (${res.status})`);
+      }
+      const data = await res.json();
+      const items: CartItem[] = data.items.map((it: any) => ({
+        id: it.id,
+        product_id: it.product.id,
+        name: it.product.name,
+        price: String(it.product.price),
+        image: it.product.primary_image ?? null,
+        quantity: it.quantity,
+        pending: false,
+      }));
+      const totals = computeTotals(items);
+      setCart({ items, ...totals });
+    } catch (err) {
+      console.error("addToCartOptimistic failed", err);
+      setCart(prev => {
+        const newItems = prev.items.filter(i => i.id !== tempId);
+        const totals = computeTotals(newItems);
+        return { items: newItems, ...totals };
+      });
+      throw err;
+    }
+  }, []);
 
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-}
+  const removeOptimisticItem = useCallback((tempId: number) => {
+    setCart(prev => {
+      const newItems = prev.items.filter(i => i.id !== tempId);
+      const totals = computeTotals(newItems);
+      return { items: newItems, ...totals };
+    });
+  }, []);
+
+  const value: CartContextValue = {
+    cart,
+    itemCount: cart.total_items,
+    isLoading,
+    addToCartOptimistic,
+    removeOptimisticItem,
+    refreshCart,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+};

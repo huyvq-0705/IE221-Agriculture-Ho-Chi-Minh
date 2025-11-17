@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Star, Package, Sparkles, ChevronLeft, ChevronRight, Filter, X, Search } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AddToCartButton } from "./AddToCartButton";
 
 interface Category {
   id: number;
@@ -327,9 +328,9 @@ export default function ProductList({ initialData, categories }: Props) {
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      setError(errorMessage);
-      setProducts([]);
-      setTotalCount(0);
+      setError(errorMessage);
+      setProducts([]);
+      setTotalCount(0);
     } finally {
       setSearching(false);
     }
@@ -374,10 +375,10 @@ export default function ProductList({ initialData, categories }: Props) {
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      setError(errorMessage);
-      setProducts([]);
-      setNextPage(null);
-      setTotalCount(0);
+      setError(errorMessage);
+      setProducts([]);
+      setNextPage(null);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -431,7 +432,7 @@ export default function ProductList({ initialData, categories }: Props) {
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      setError(errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -800,80 +801,83 @@ export default function ProductList({ initialData, categories }: Props) {
                 key={p.slug}
                 className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200"
               >
-                <Link href={`/products/${p.slug}`} className="block">
-                  <div className="relative aspect-square overflow-hidden bg-gray-50">
-                    {(!p.is_in_stock || p.stock_quantity === 0) && (
-                      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-10">
-                        <Badge variant="secondary" className="bg-gray-800 text-white text-sm py-2 px-4">
-                          Hết hàng
-                        </Badge>
-                      </div>
-                    )}
+                {/* clickable area: image + basic info */}
+                <div className="block">
+                  <Link href={`/products/${p.slug}`} className="block">
+                    <div className="relative aspect-square overflow-hidden bg-gray-50">
+                      {(!p.is_in_stock || p.stock_quantity === 0) && (
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-10">
+                          <Badge variant="secondary" className="bg-gray-800 text-white text-sm py-2 px-4">
+                            Hết hàng
+                          </Badge>
+                        </div>
+                      )}
 
-                    {p.primary_image ? (
-                      <img
-                        src={p.primary_image}
-                        alt={p.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-16 h-16 text-gray-300" />
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-4 space-y-2">
-                    {p.category && (
-                      <Badge variant="outline" className="text-xs border-emerald-200 text-emerald-700">
-                        {p.category.name}
-                      </Badge>
-                    )}
-
-                    <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[42px] leading-tight group-hover:text-emerald-700 transition-colors">
-                      {p.name}
-                    </h3>
-
-                    <p className="text-xl font-bold text-emerald-700">
-                      {formatPrice(p.price)}
-                    </p>
-
-                    <div className="flex items-center gap-1 text-sm">
-                      {p.average_rating && p.average_rating > 0 ? (
-                        <>
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-semibold text-gray-700">
-                            {p.average_rating.toFixed(1)}
-                          </span>
-                          <span className="text-gray-500">
-                            ({p.review_count || 0})
-                          </span>
-                        </>
+                      {p.primary_image ? (
+                        <img
+                          src={p.primary_image}
+                          alt={p.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          loading="lazy"
+                        />
                       ) : (
-                        <span className="text-gray-400 text-xs">
-                          Chưa có đánh giá
-                        </span>
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-16 h-16 text-gray-300" />
+                        </div>
                       )}
                     </div>
 
-                    {typeof p.stock_quantity === "number" && p.stock_quantity > 0 && (
-                      <p className="text-xs text-gray-500">
-                        Còn {p.stock_quantity} sản phẩm
-                      </p>
-                    )}
-                  </CardContent>
+                    <CardContent className="p-4 space-y-2">
+                      {p.category && (
+                        <Badge variant="outline" className="text-xs border-emerald-200 text-emerald-700">
+                          {p.category.name}
+                        </Badge>
+                      )}
 
-                  <CardFooter className="p-4 pt-0">
-                    <Button
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold shadow-md"
-                      disabled={!p.is_in_stock || p.stock_quantity === 0}
-                      type="button"
-                    >
-                      {!p.is_in_stock || p.stock_quantity === 0 ? "Hết hàng" : "Mua ngay"}
-                    </Button>
-                  </CardFooter>
-                </Link>
+                      <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[42px] leading-tight group-hover:text-emerald-700 transition-colors">
+                        {p.name}
+                      </h3>
+
+                      <p className="text-xl font-bold text-emerald-700">
+                        {formatPrice(p.price)}
+                      </p>
+
+                      <div className="flex items-center gap-1 text-sm">
+                        {p.average_rating && p.average_rating > 0 ? (
+                          <>
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold text-gray-700">
+                              {p.average_rating.toFixed(1)}
+                            </span>
+                            <span className="text-gray-500">
+                              ({p.review_count || 0})
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 text-xs">
+                            Chưa có đánh giá
+                          </span>
+                        )}
+                      </div>
+
+                      {typeof p.stock_quantity === "number" && p.stock_quantity > 0 && (
+                        <p className="text-xs text-gray-500">
+                          Còn {p.stock_quantity} sản phẩm
+                        </p>
+                      )}
+                    </CardContent>
+                  </Link>
+                </div>
+
+                {/* actions — outside the Link so clicks don't navigate away */}
+                <CardFooter className="p-4 pt-0">
+                  <AddToCartButton
+                    product={{ id: p.id, name: p.name, price: p.price, primary_image: p.primary_image }}
+                    isInStock={!!p.is_in_stock}
+                    stockQuantity={p.stock_quantity ?? 0}
+                    qty={1}
+                  />
+                </CardFooter>
               </Card>
             ))}
           </div>

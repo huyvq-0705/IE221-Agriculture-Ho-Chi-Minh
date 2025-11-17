@@ -1,101 +1,91 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast"; 
 import { useCart } from "@/contexts/CartContext";
-import { useToast } from "@/hooks/use-toast";
-import { isLoggedIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { Loader2, ShoppingCart } from "lucide-react";
 
-interface AddToCartButtonProps {
-  productId: number;
-  isInStock: boolean;
-  stockQuantity: number;
-}
+type AddToCartButtonProps = {
+  product: {
+    id: number;
+    name?: string;
+    price?: string;
+    primary_image?: string | null;
+  };
+  isInStock?: boolean;
+  stockQuantity?: number;
+  qty?: number;
+  disabled?: boolean;
+};
 
-export function AddToCartButton({ productId, isInStock, stockQuantity }: AddToCartButtonProps) {
-  const { addToCart, isLoading: cartLoading } = useCart();
-  const { toast } = useToast();
-  const router = useRouter();
-  const [isAdding, setIsAdding] = useState(false);
+export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
+  product,
+  isInStock = true,
+  stockQuantity = 0,
+  qty = 1,
+  disabled = false,
+}) => {
+  const { addToCartOptimistic } = useCart();
 
-  const handleAddToCart = async () => {
-    // Check login status
-    if (!isLoggedIn()) {
-      toast({
-        title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
-        variant: "destructive",
-      });
-      
-      // Store current path for redirect after login
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-      }
-      
-      router.push('/login');
+  const toastHook = useToast();
+
+  const toast =
+    (toastHook && (toastHook as any).toast) ||
+    ((opts: any) => {
+  
+      console.info("[toast fallback]", opts);
+    });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!isInStock || stockQuantity <= 0 || disabled) {
+      toast({ title: "Hết hàng", description: "Sản phẩm hiện không có sẵn." });
       return;
     }
 
-    setIsAdding(true);
+    setLoading(true);
     try {
-      await addToCart(productId);
-      
-      toast({
-        title: "Thành công",
-        description: "Đã thêm sản phẩm vào giỏ hàng",
+      await addToCartOptimistic({
+        product_id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.primary_image ?? null,
+        quantity: qty,
       });
-    } catch (error: any) {
-      console.error('Add to cart error:', error);
-      
-      if (error.message === 'Unauthorized') {
-        toast({
-          title: "Phiên đăng nhập hết hạn",
-          description: "Vui lòng đăng nhập lại",
-          variant: "destructive",
-        });
-        
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-        }
-        
-        router.push('/login');
-        return;
-      }
-      
+
       toast({
-        title: "Thất bại",
-        description: error.message || "Không thể thêm sản phẩm vào giỏ hàng",
-        variant: "destructive",
+        title: "Đã thêm vào giỏ",
+        description: `${product.name ?? "Sản phẩm"} đã được thêm vào giỏ`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Lỗi",
+        description: err?.message ?? "Không thể thêm vào giỏ",
       });
     } finally {
-      setIsAdding(false);
+      setLoading(false);
     }
   };
 
-  const disabled = !isInStock || stockQuantity === 0 || isAdding || cartLoading;
-
   return (
     <Button
-      variant="outline"
-      size="lg"
-      className="flex-1 border-emerald-700 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-      disabled={disabled}
-      onClick={handleAddToCart}
+      onClick={handleClick}
+      className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold shadow-md"
+      disabled={loading || disabled || !isInStock}
+      variant="default"
     >
-      {isAdding ? (
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          Đang thêm...
-        </div>
+      {loading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <>
-          <ShoppingCart className="w-5 h-5 mr-2" />
-          Thêm vào giỏ
-        </>
+        <ShoppingCart className="mr-2 h-4 w-4" />
       )}
+      {loading ? "Đang thêm..." : "Thêm vào giỏ"}
     </Button>
   );
-}
+};
 
+export default AddToCartButton;

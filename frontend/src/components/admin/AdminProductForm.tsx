@@ -73,28 +73,6 @@ export default function ProductForm({ product, categories, mode }: ProductFormPr
                 )}
             </div>
 
-            {/* Slug */}
-            <div>
-                <Label htmlFor="slug">Slug *</Label>
-                <Input 
-                    id="slug" 
-                    name="slug" 
-                    defaultValue={product?.slug}
-                    placeholder="ten-san-pham"
-                    required 
-                    disabled={mode === 'edit'}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                    {mode === 'edit' 
-                        ? 'Slug không thể thay đổi sau khi tạo'
-                        : 'URL thân thiện (vd: ca-chua-da-lat)'
-                    }
-                </p>
-                {state?.errors?.slug && (
-                    <p className="text-sm text-red-600 mt-1">{state.errors.slug[0]}</p>
-                )}
-            </div>
-
             {/* Mô tả */}
             <div>
                 <Label htmlFor="description">Mô tả</Label>

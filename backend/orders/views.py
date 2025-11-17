@@ -1,8 +1,13 @@
+# orders/views.py
 from decimal import Decimal
 from django.db import transaction
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
+# Cookie-aware auth (reads httpOnly accessToken from cookies)
+from accounts.authentication import CookieJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from products.models import Product
@@ -14,11 +19,17 @@ from .serializers import (
     AdminOrderUpdateSerializer,
 )
 
+# Cart models as in your app
+from carts.models import Cart, CartItem
+
+
 def get_unit_price(product: Product) -> Decimal:
+    # adjust if you have discounts/pricing logic
     return product.price
 
+
 class OrderListCreateAPIView(generics.ListCreateAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -28,27 +39,68 @@ class OrderListCreateAPIView(generics.ListCreateAPIView):
         return OrderSerializer if self.request.method == "GET" else OrderCreateSerializer
 
     @transaction.atomic
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        s = OrderCreateSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        data = s.validated_data
+        """
+        Create an order from the authenticated user's cart stored in DB.
+        Client sends only customer details and payment_method.
+        This method will CLEAR the cart items upon successful order creation.
+        """
+        # Validate incoming customer fields
+        serializer = OrderCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
 
+        # Lock the user's cart & cart items for update
+        try:
+            cart = Cart.objects.select_for_update().get(user=request.user)
+        except Cart.DoesNotExist:
+            return Response({"detail": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch and lock cart items and their products
+        cart_items_qs = CartItem.objects.select_for_update().filter(cart=cart).select_related("product")
+        cart_items = list(cart_items_qs)
+
+        if not cart_items:
+            return Response({"detail": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pre-check inventory
+        shortages = []
+        for ci in cart_items:
+            prod = ci.product
+            if getattr(prod, "stock_quantity", None) is not None:
+                if prod.stock_quantity < ci.quantity:
+                    shortages.append({
+                        "product_id": prod.id,
+                        "product_name": prod.name,
+                        "requested": ci.quantity,
+                        "available": prod.stock_quantity,
+                    })
+
+        if shortages:
+            return Response({
+                "detail": "Some items are out of stock or insufficient quantity.",
+                "shortages": shortages
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the order
         order = Order.objects.create(
             user=request.user,
-            customer_name=data["customer_name"],
-            customer_phone=data["customer_phone"],
-            customer_email=data.get("customer_email"),
-            customer_address=data["customer_address"],
-            payment_method=data.get("payment_method"),
+            customer_name=validated.get("customer_name", ""),
+            customer_phone=validated.get("customer_phone", ""),
+            customer_email=validated.get("customer_email"),
+            customer_address=validated.get("customer_address", ""),
+            payment_method=validated.get("payment_method"),
             status=OrderStatus.PENDING,
         )
 
         subtotal = Decimal("0.00")
         snapshot_items = []
 
-        for item in data["items"]:
-            product = Product.objects.select_for_update().get(pk=item["product_id"])
-            qty = int(item["quantity"])
+        # Build OrderItem from cart items; update stock
+        for ci in cart_items:
+            product = Product.objects.select_for_update().get(pk=ci.product.pk)
+            qty = int(ci.quantity)
             unit = Decimal(get_unit_price(product))
             line = unit * qty
 
@@ -62,24 +114,37 @@ class OrderListCreateAPIView(generics.ListCreateAPIView):
             )
 
             subtotal += line
-            snapshot_items.append({"product_id": product.id, "name": product.name, "qty": qty, "unit": str(unit)})
+            snapshot_items.append({
+                "product_id": product.id,
+                "name": product.name,
+                "qty": qty,
+                "unit": str(unit),
+            })
 
-            if product.stock_quantity is not None:
+            # decrease stock if tracked
+            if getattr(product, "stock_quantity", None) is not None:
                 new_stock = max(0, int(product.stock_quantity) - qty)
                 product.stock_quantity = new_stock
                 product.is_in_stock = new_stock > 0
                 product.save(update_fields=["stock_quantity", "is_in_stock"])
 
+        # Finalize order totals and snapshot
         order.subtotal_amount = subtotal
         order.discount_amount = Decimal("0.00")
         order.final_amount = subtotal
         order.pricing_snapshot = {"version": 1, "items": snapshot_items}
         order.save()
 
+        # CLEAR the cart items (inside same transaction)
+        cart_items_qs.delete()
+        # Optionally delete the cart row:
+        # cart.delete()
+
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
+
 class OrderRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
@@ -102,14 +167,16 @@ class OrderRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         return Response({"detail": "Deleting orders is not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+
 class AdminOrderListAPIView(generics.ListAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = OrderSerializer
     queryset = Order.objects.all().order_by("-created_at")
 
+
 class AdminOrderDetailAPIView(generics.RetrieveUpdateAPIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Order.objects.all()
 
