@@ -6,7 +6,10 @@ import CreateCouponModal from "./createCouponModal";
 interface Coupon {
   id: number;
   code: string;
-  discount: number;
+  discount_percent: number;
+  max_discount_amount: number;
+  min_purchase_amount: number;
+  time_used: number;
   created_at: string;
   expires_at: string;
   remaining: string;
@@ -48,7 +51,19 @@ const CouponList: React.FC<CouponListProps> = ({ sales }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {sales.map((sale, index) => (
-          <CouponCard key={index} {...sale} />
+          <CouponCard
+            key={index}
+            id={sale.id}
+            code={sale.code}
+            discount_percent={sale.discount_percent}
+            created_at={sale.created_at}
+            expires_at={sale.expires_at}
+            remaining={sale.remaining}
+            status={sale.status}
+            max_discount_amount={sale.max_discount_amount}
+            min_purchase_amount={sale.min_purchase_amount}
+            time_used={sale.time_used}
+          />
         ))}
       </div>
 

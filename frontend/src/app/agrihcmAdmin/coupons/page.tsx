@@ -55,7 +55,10 @@ export default async function CouponPage() {
   const formattedCoupons = coupons.map((c) => ({
     id: c.id,
     code: c.code,
-    discount: Number(c.discount_percent),
+    discount_percent: Number(c.discount_percent),
+    max_discount_amount: Number(c.max_discount_amount),
+    min_purchase_amount: Number(c.min_purchase_amount),
+    time_used: Number(c.times_used),
     created_at: new Date(c.created_at).toLocaleString("vi-VN"),
     expires_at: new Date(c.expires_at).toLocaleString("vi-VN"),
     remaining: "—", // Có thể tính thời gian còn lại ở đây nếu muốn

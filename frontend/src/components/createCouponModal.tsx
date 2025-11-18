@@ -64,7 +64,7 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
         {/* Nút đóng */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -160,7 +160,7 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({ onClose, onSucces
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg py-2 mt-2"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg py-2 mt-2 cursor-pointer"
           >
             {loading ? "Creating..." : "Create Coupon"}
           </button>

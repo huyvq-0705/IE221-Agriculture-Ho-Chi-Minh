@@ -3,8 +3,7 @@ from . import views
 
 urlpatterns = [
     # Public routes
-    # path('api/coupons/', views.CouponListAPIView.as_view(), name='coupon-list'),
-    # path('api/coupons/<int:pk>/', views.CouponDetailAPIView.as_view(), name='coupon-detail'),
+    path('api/coupons/<str:code>/', views.CouponDetailAPIView.as_view(), name='coupon-detail'),
 
     # Admin routes
     path('api/admin/coupons/', views.AdminCouponCreateAPIView.as_view(), name='admin-coupon-create'),

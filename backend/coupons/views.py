@@ -13,12 +13,13 @@ class CouponPagination(PageNumberPagination):
 
 class CouponDetailAPIView(generics.RetrieveAPIView):
     """
-    GET /api/coupons/<id>/
+    GET /api/coupons/<code>/
     Lấy chi tiết 1 coupon cụ thể.
     """
     queryset = Coupon.objects.all()
     serializer_class = PublicCouponDetailSerializer
     permission_classes = [AllowAny]
+    lookup_field = 'code'
 
 
 # --- ADMIN API ---
