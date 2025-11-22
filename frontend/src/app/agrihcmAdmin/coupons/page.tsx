@@ -58,11 +58,12 @@ export default async function CouponPage() {
     discount_percent: Number(c.discount_percent),
     max_discount_amount: Number(c.max_discount_amount),
     min_purchase_amount: Number(c.min_purchase_amount),
-    time_used: Number(c.times_used),
-    created_at: new Date(c.created_at).toLocaleString("vi-VN"),
-    expires_at: new Date(c.expires_at).toLocaleString("vi-VN"),
+    usage_limit: Number(c.usage_limit),
+    times_used: Number(c.times_used),
+    created_at: c.created_at,
+    expires_at: c.expires_at,
     remaining: "—", // Có thể tính thời gian còn lại ở đây nếu muốn
-    status: c.is_active,
+    is_active: c.is_active,
   }));
 
   return (

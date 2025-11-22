@@ -24,7 +24,7 @@ class CouponDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coupon
         fields = '__all__'
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at"]
 
 class PublicCouponDetailSerializer(serializers.ModelSerializer):
     class Meta:

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { updateCoupon } from "@/app/agrihcmAdmin/coupons/actions";
-import AlertPopup from "@/components/ui/AlertPopup";
+import AlertPopup from "./ui/AlertPopup";
 
 interface UpdateCouponModalProps {
     coupon: {
@@ -11,8 +11,10 @@ interface UpdateCouponModalProps {
         discount_percent: number;
         max_discount_amount: number;
         min_purchase_amount: number;
-        time_used: number;
+        usage_limit: number;
+        times_used: number;
         expires_at: string;
+        is_active: boolean;
     };
     onClose: () => void;
     onSuccess: () => void;
@@ -28,8 +30,10 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
         discount_percent: "",
         max_discount_amount: "",
         min_purchase_amount: "",
-        time_used: "",
+        usage_limit: "",
+        times_used: "",
         expires_at: "",
+        is_active: coupon?.is_active ?? true
     });
 
     const [loading, setLoading] = useState(false);
@@ -42,15 +46,21 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
             discount_percent: String(coupon.discount_percent),
             max_discount_amount: String(coupon.max_discount_amount),
             min_purchase_amount: String(coupon.min_purchase_amount),
-            time_used: String(coupon.time_used),
+            usage_limit: String(coupon.usage_limit),
+            times_used: String(coupon.times_used),
             expires_at: coupon.expires_at.slice(0, 16), // để hiển thị trong input datetime-local
+            is_active: coupon.is_active
         });
     }, [coupon]);
 
 
     // Update state khi nhập liệu
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        setForm(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
 
@@ -60,7 +70,7 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
         setLoading(true);
 
         const formData = new FormData();
-        Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+        Object.entries(form).forEach(([k, v]) => formData.append(k, String(v)));
 
         // (required by API)
         formData.append("pk", String(coupon.id));
@@ -115,13 +125,13 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
 
                         {/* Discount */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Discount (%)
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700">Discount (%)</label>
                             <input
                                 name="discount_percent"
                                 type="number"
                                 step="0.01"
+                                min="0"
+                                max="100"
                                 value={form.discount_percent}
                                 onChange={handleChange}
                                 required
@@ -138,6 +148,7 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
                                 <input
                                     name="max_discount_amount"
                                     type="number"
+                                    min="0"
                                     value={form.max_discount_amount}
                                     onChange={handleChange}
                                     className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
@@ -151,7 +162,9 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
                                 <input
                                     name="min_purchase_amount"
                                     type="number"
+                                    min="1"
                                     value={form.min_purchase_amount}
+                                    required
                                     onChange={handleChange}
                                     className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
                                 />
@@ -167,9 +180,8 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
                                 name="time_used"
                                 type="number"
                                 min="0"
-                                value={form.time_used}
+                                value={form.times_used}
                                 onChange={handleChange}
-                                required
                                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
                             />
                         </div>
@@ -187,6 +199,23 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
                                 required
                                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
                             />
+                        </div>
+
+                        {/* Active Toggle */}
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <label className="text-sm font-medium text-gray-700">
+                                Active Status
+                            </label>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    name="is_active"
+                                    type="checkbox"
+                                    checked={form.is_active}
+                                    onChange={handleChange}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                         </div>
 
                         <button

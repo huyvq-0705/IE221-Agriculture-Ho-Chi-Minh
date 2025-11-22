@@ -13,11 +13,12 @@ interface CouponProps {
   discount_percent: number;
   max_discount_amount: number;
   min_purchase_amount: number;
-  time_used: number;
+  usage_limit: number;
+  times_used: number;
   created_at: string;
   expires_at: string;
   remaining: string;
-  status: boolean;
+  is_active: boolean;
 }
 
 const CouponCard: React.FC<CouponProps> = ({
@@ -26,11 +27,12 @@ const CouponCard: React.FC<CouponProps> = ({
   discount_percent,
   max_discount_amount,
   min_purchase_amount,
-  time_used,
+  usage_limit,
+  times_used,
   created_at,
   expires_at,
   remaining,
-  status,
+  is_active,
 }) => {
   const [alertData, setAlertData] = useState<any>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -64,10 +66,10 @@ const CouponCard: React.FC<CouponProps> = ({
           <h2 className="font-semibold text-lg">{code}</h2>
 
           <span
-            className={`text-xs font-semibold px-2 py-1 rounded-full ${status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            className={`text-xs font-semibold px-2 py-1 rounded-full ${is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
               }`}
           >
-            {status ? "ACTIVE" : "EXPIRED"}
+            {is_active ? "ACTIVE" : "EXPIRED"}
           </span>
         </div>
 
@@ -77,10 +79,10 @@ const CouponCard: React.FC<CouponProps> = ({
             <Percent size={14} /> {discount_percent.toFixed(2)}%
           </p>
           <p className="flex items-center gap-1">
-            <Clock size={14} /> Created at: {created_at}
+            <Clock size={14} /> Created at: {new Date(created_at).toLocaleString("vi-VN", { timeZone: "UTC" })}
           </p>
           <p className="flex items-center gap-1">
-            <Clock size={14} /> Expires at: {expires_at}
+            <Clock size={14} /> Expires at: {new Date(expires_at).toLocaleString("vi-VN", { timeZone: "UTC" })}
           </p>
         </div>
 
@@ -126,8 +128,10 @@ const CouponCard: React.FC<CouponProps> = ({
             discount_percent,
             max_discount_amount,
             min_purchase_amount,
-            time_used,
+            usage_limit,
+            times_used,
             expires_at,
+            is_active,
           }}
 
           onClose={() => setUpdateOpen(false)}
