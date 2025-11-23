@@ -1,12 +1,16 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { fetchApi } from "@/lib/api";
 import { redirect } from 'next/navigation';
+import { cookies } from "next/headers"; 
 
 interface ActionState {
   message: string;
   success?: boolean;
+  tokens?: {
+    access: string;
+    refresh: string;
+  };
 }
 
 interface LoginResponse {
@@ -29,16 +33,24 @@ export async function adminLogin(prevState: ActionState, formData: FormData): Pr
       body: JSON.stringify(data),
     })) as LoginResponse;
 
-    const cookieStore = await cookies(); 
+    const cookieStore = await cookies();
     const options = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax" as const,
         path: "/",
     };
-
     cookieStore.set("accessToken", response.access, { ...options, maxAge: 60 * 60 });
     cookieStore.set("refreshToken", response.refresh, { ...options, maxAge: 60 * 60 * 24 * 7 });
+
+    return { 
+        success: true, 
+        message: "Đăng nhập thành công",
+        tokens: {
+            access: response.access,
+            refresh: response.refresh
+        }
+    };
 
   } catch (error) {
     console.error("Admin login failed:", error);
@@ -47,29 +59,17 @@ export async function adminLogin(prevState: ActionState, formData: FormData): Pr
     } else if (!(error instanceof Error) || error.message !== 'NEXT_REDIRECT') {
         return { success: false, message: "Đã xảy ra lỗi không xác định." };
     }
+    return { success: false, message: "Lỗi server." };
   }
-
-  redirect('/agrihcmAdmin');
 }
 
-// ✅ FIX: Sửa lại adminLogout để xử lý redirect đúng cách
 export async function adminLogout() {
   try {
-    console.log('🔐 Logging out admin...');
-    
     const cookieStore = await cookies();
-    
-    // Xóa cookies
     cookieStore.delete('accessToken');
     cookieStore.delete('refreshToken');
-    
-    console.log('✅ Cookies deleted');
-    
   } catch (error) {
-    console.error('❌ Logout error:', error);
-    // Không throw error ở đây
+    console.error('Logout error:', error);
   }
-  
-  // Redirect phải nằm ngoài try-catch vì nó throw NEXT_REDIRECT error
   redirect('/agrihcmAdmin/login');
 }

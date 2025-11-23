@@ -12,11 +12,16 @@ async function jsonRequest(path: string, init: RequestInit = {}) {
 
   const text = await res.text();
   let payload: any = null;
-  try { payload = text ? JSON.parse(text) : null; } catch { payload = text; }
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = text;
+  }
 
   if (!res.ok) {
     const errMsg = (payload && (payload.error || payload.message)) || res.statusText;
-    const err = new Error(String(errMsg));
+    // cast to any so we can attach a payload property in a type-safe way
+    const err: any = new Error(String(errMsg));
     err.payload = payload;
     throw err;
   }

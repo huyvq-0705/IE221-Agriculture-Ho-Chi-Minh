@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 import RichTextEditor from "@/components/richTextEditor";
 
 function normalizeHtmlLists(html: string): string {
@@ -40,27 +41,20 @@ function normalizeHtmlLists(html: string): string {
       i = Array.from(body.childNodes).indexOf(ul);
     }
   }
-  Array.from(body.querySelectorAll("li figure")).forEach((fig) => {
-    const li = fig.closest("li");
-    const ul = fig.closest("ul");
-    if (li && ul) {
-      ul.parentElement?.insertBefore(fig, ul.nextSibling);
-      if (li.textContent?.trim() === "") li.remove();
-    }
-  });
   return body.innerHTML;
 }
 
 const TITLE_MIN = 30;
 const TITLE_MAX = 60;
-const META_MIN = 50;
 const META_MAX = 160;
-const EXCERPT_MIN = 60;
-const EXCERPT_MAX = 200;
-const ALT_MIN = 10;
-const ALT_MAX = 125;
 
 type ActionResult = { ok: boolean; message?: string };
+
+// Product type for dropdown
+type SimpleProduct = {
+  id: number;
+  name: string;
+};
 
 type Props = {
   initial?: Partial<{
@@ -71,19 +65,13 @@ type Props = {
     cover_image_url: string;
     cover_image_alt: string;
     content: string;
+    product: { id: number; name: string } | null; // Nested obj
   }>;
+  products?: SimpleProduct[]; // NEW PROP: List of products
   onSubmit: (prev: any, formData: FormData) => Promise<ActionResult>;
   submitText: string;
   redirectTo?: string;
 };
-
-function getLengthHint(value: string, min: number, max: number) {
-  const len = (value ?? "").trim().length;
-  if (len === 0) return { cls: "text-muted-foreground", msg: "Empty — add some text." };
-  if (len < min) return { cls: "text-destructive", msg: `${min - len} characters below the recommended minimum (${min}).` };
-  if (len > max) return { cls: "text-destructive", msg: `${len - max} characters over the recommended maximum (${max}). Please shorten it.` };
-  return { cls: "text-emerald-600", msg: `Looks good (within ${min}–${max} chars).` };
-}
 
 const Counter = ({ value, max }: { value: number; max: number }) => (
   <span className={`text-xs ${value > max ? "text-destructive" : "text-muted-foreground"}`}>{value}/{max}</span>
@@ -91,27 +79,25 @@ const Counter = ({ value, max }: { value: number; max: number }) => (
 
 export default function BlogForm({
   initial,
+  products = [], // Default to empty array
   onSubmit,
   submitText,
   redirectTo = "/agrihcmAdmin/blogs",
 }: Props) {
   const router = useRouter();
   const [state, formAction] = useActionState(onSubmit, { ok: false, message: "" });
+  
   const [title, setTitle] = React.useState(initial?.title ?? "");
-  const [meta, setMeta] = React.useState(initial?.meta_description ?? "");
-  const [excerpt, setExcerpt] = React.useState(initial?.excerpt ?? "");
   const [coverUrl, setCoverUrl] = React.useState(initial?.cover_image_url ?? "");
-  const [coverAlt, setCoverAlt] = React.useState(initial?.cover_image_alt ?? "");
-  const [imgOk, setImgOk] = React.useState<boolean | null>(null);
+  
+  // Init product ID from initial nested object if it exists
+  const [selectedProductId, setSelectedProductId] = React.useState<string>(
+    initial?.product?.id ? String(initial.product.id) : ""
+  );
 
   React.useEffect(() => {
     if (state?.ok) router.push(redirectTo);
   }, [state, router, redirectTo]);
-
-  const titleHint = getLengthHint(title, TITLE_MIN, TITLE_MAX);
-  const metaHint = getLengthHint(meta, META_MIN, META_MAX);
-  const excerptHint = getLengthHint(excerpt, EXCERPT_MIN, EXCERPT_MAX);
-  const altHint = getLengthHint(coverAlt, ALT_MIN, ALT_MAX);
 
   const formRef = React.useRef<HTMLFormElement>(null);
   const handlePreSubmit = React.useCallback(() => {
@@ -140,38 +126,51 @@ export default function BlogForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title"
         />
-        <p className={`text-xs ${titleHint.cls}`}>{titleHint.msg}</p>
+      </div>
+
+      {/* NEW: Product Selection Dropdown */}
+      <div className="grid gap-1.5">
+        <Label htmlFor="product_id">Featured Product (Optional)</Label>
+        <Select name="product_id" value={selectedProductId} onValueChange={setSelectedProductId}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a product to feature..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">-- No Product --</SelectItem>
+            {products.map((p) => (
+              <SelectItem key={p.id} value={String(p.id)}>
+                {p.name} (ID: {p.id})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="text-xs text-muted-foreground">
+          This product will appear as a clickable card at the bottom of the blog post.
+        </div>
       </div>
 
       <div className="grid gap-1.5">
         <div className="flex items-center justify-between">
           <Label htmlFor="meta_description">Meta Description</Label>
-          <Counter value={meta.length} max={META_MAX} />
+          <Counter value={(initial?.meta_description || "").length} max={META_MAX} />
         </div>
         <Input
           id="meta_description"
           name="meta_description"
-          value={meta}
-          onChange={(e) => setMeta(e.target.value)}
-          placeholder="Short summary used by search and social"
+          defaultValue={initial?.meta_description}
+          placeholder="SEO description"
         />
-        <p className={`text-xs ${metaHint.cls}`}>{metaHint.msg}</p>
       </div>
 
       <div className="grid gap-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="excerpt">Excerpt</Label>
-          <span className="text-xs text-muted-foreground">{excerpt.length} chars</span>
-        </div>
+        <Label htmlFor="excerpt">Excerpt</Label>
         <Textarea
           id="excerpt"
           name="excerpt"
           rows={3}
-          value={excerpt}
-          onChange={(e) => setExcerpt(e.target.value)}
-          placeholder="Shown on lists/cards. Keep it concise."
+          defaultValue={initial?.excerpt}
+          placeholder="Short preview"
         />
-        <p className={`text-xs ${excerptHint.cls}`}>{excerptHint.msg}</p>
       </div>
 
       <div className="grid gap-3">
@@ -182,63 +181,25 @@ export default function BlogForm({
             name="cover_image_url"
             type="url"
             value={coverUrl}
-            onChange={(e) => {
-              setCoverUrl(e.target.value);
-              setImgOk(null);
-            }}
+            onChange={(e) => setCoverUrl(e.target.value)}
             placeholder="https://…"
           />
-          <div className="text-xs text-muted-foreground">
-            Paste an image URL (Unsplash, CDN…). Preview appears below.
-          </div>
         </div>
-
-        <div className="rounded-md border bg-muted/30 p-2">
-          <div className="flex items-start gap-3">
-            <div className="relative h-28 w-44 overflow-hidden rounded-sm ring-1 ring-border bg-muted">
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt={coverAlt || "Cover preview"}
-                  className="h-full w-full object-cover"
-                  onLoad={() => setImgOk(true)}
-                  onError={() => setImgOk(false)}
-                  loading="lazy"
-                />
-              ) : (
-                <div className="h-full w-full grid place-items-center text-xs text-muted-foreground">
-                  No image URL
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="text-sm font-medium line-clamp-2" title={title || "Untitled"}>
-                {title || "Untitled"}
-              </div>
-              <div className="text-xs text-muted-foreground line-clamp-3">
-                {meta || "Meta description preview will appear here."}
-              </div>
-              {imgOk === false && (
-                <div className="text-xs text-destructive">Couldn’t load image from this URL.</div>
-              )}
-            </div>
-          </div>
-        </div>
+        {coverUrl && (
+           <div className="relative h-28 w-44 overflow-hidden rounded-sm ring-1 ring-border bg-muted">
+              <img src={coverUrl} alt="Preview" className="h-full w-full object-cover" />
+           </div>
+        )}
       </div>
 
       <div className="grid gap-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="cover_image_alt">Cover Image Alt</Label>
-          <Counter value={coverAlt.length} max={ALT_MAX} />
-        </div>
+        <Label htmlFor="cover_image_alt">Cover Image Alt</Label>
         <Input
           id="cover_image_alt"
           name="cover_image_alt"
-          value={coverAlt}
-          onChange={(e) => setCoverAlt(e.target.value)}
-          placeholder="Describe the image for accessibility & SEO"
+          defaultValue={initial?.cover_image_alt}
+          placeholder="Describe image"
         />
-        <p className={`text-xs ${altHint.cls}`}>{altHint.msg}</p>
       </div>
 
       <div className="grid gap-2">
@@ -258,20 +219,6 @@ export default function BlogForm({
           Cancel
         </Button>
       </div>
-
-      <Card className="mt-1">
-        <CardContent className="py-4">
-          <div className="space-y-1">
-            <div className="text-sm text-emerald-700">agrihcm.shop › blog</div>
-            <div className={`text-base font-semibold leading-tight line-clamp-2 ${title.length > TITLE_MAX ? "text-destructive" : "text-blue-700"}`}>
-              {title || "Your post title"}
-            </div>
-            <div className={`text-sm line-clamp-2 ${meta.length > META_MAX ? "text-destructive" : "text-muted-foreground"}`}>
-              {meta || "A short, compelling description up to ~160 characters."}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </form>
   );
 }

@@ -40,8 +40,8 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false); 
-  const [cartOpen, setCartOpen] = useState(false); 
+  const [open, setOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const { user, logout } = useAuth();
   const { showLoginToast } = useLoginRequiredToast();
 
@@ -146,6 +146,13 @@ export default function Navbar() {
                   </Link>
                 </DropdownMenuItem>
 
+                {/* New: Orders link in dropdown */}
+                <DropdownMenuItem asChild>
+                  <Link href={"/orders"}>
+                    <span className="flex items-center gap-2">Đơn hàng</span>
+                  </Link>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem onClick={logout}>
@@ -179,7 +186,11 @@ export default function Navbar() {
             className="w-full sm:w-80 p-0 bg-white/95 backdrop-blur-md border-l border-emerald-100 data-[state=open]:animate-in data-[state=open]:slide-in-from-right"
           >
             <div className="flex items-center justify-between h-14 px-4 border-b">
-              <Link href="/" onClick={() => setOpen(false)} className="text-lg font-bold tracking-tight text-emerald-600">
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className="text-lg font-bold tracking-tight text-emerald-600"
+              >
                 AgriHCM
               </Link>
             </div>
@@ -204,6 +215,16 @@ export default function Navbar() {
                   Bài viết
                 </Link>
 
+                {/* Added: Products link for mobile */}
+                <Link
+                  href="/products"
+                  onClick={() => setOpen(false)}
+                  className={`${mobileLinkBase} ${isActive("/products") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"}`}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  Sản Phẩm
+                </Link>
+
                 <Link
                   href="/about"
                   onClick={() => setOpen(false)}
@@ -221,26 +242,75 @@ export default function Navbar() {
                   <Phone className="h-5 w-5" />
                   Liên hệ
                 </Link>
+
+                {/* Mobile cart button (mirrors desktop) */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpen(false);
+                    handleCartButton();
+                  }}
+                  className={`${mobileLinkBase} text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 w-full text-left`}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  Giỏ hàng
+                </button>
               </nav>
 
               <div className="sticky bottom-0 mt-2 border-t bg-white/80 backdrop-blur-md px-4 pt-3 pb-[max(env(safe-area-inset-bottom),12px)] space-y-3">
-                <SheetClose asChild>
-                  <Button asChild variant="outline" className="w-full h-11 rounded-full text-base">
-                    <Link href="/auth/login" className="flex items-center justify-center gap-2">
-                      <LogIn className="h-5 w-5" />
-                      Đăng nhập
-                    </Link>
-                  </Button>
-                </SheetClose>
+                {/* If user logged in: show profile / orders / logout in mobile bottom area */}
+                {user ? (
+                  <>
+                    <SheetClose asChild>
+                      <Button asChild variant="outline" className="w-full h-11 rounded-full text-base">
+                        <Link href="/profile" className="flex items-center justify-center gap-2" onClick={() => setOpen(false)}>
+                          <UserPlus className="h-5 w-5" />
+                          Hồ sơ
+                        </Link>
+                      </Button>
+                    </SheetClose>
 
-                <SheetClose asChild>
-                  <Button asChild className="w-full h-11 rounded-full text-base bg-emerald-600 hover:bg-emerald-700">
-                    <Link href="/auth/signup" className="flex items-center justify-center gap-2">
-                      <UserPlus className="h-5 w-5" />
-                      Đăng ký
-                    </Link>
-                  </Button>
-                </SheetClose>
+                    <SheetClose asChild>
+                      <Button asChild className="w-full h-11 rounded-full text-base bg-emerald-50 hover:bg-emerald-100">
+                        <Link href="/orders" className="flex items-center justify-center gap-2" onClick={() => setOpen(false)}>
+                          <ShoppingCart className="h-5 w-5" />
+                          Đơn hàng
+                        </Link>
+                      </Button>
+                    </SheetClose>
+
+                    <Button
+                      onClick={() => {
+                        logout();
+                        setOpen(false);
+                      }}
+                      className="w-full h-11 rounded-full text-base"
+                      variant="outline"
+                    >
+                      Đăng xuất
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <SheetClose asChild>
+                      <Button asChild variant="outline" className="w-full h-11 rounded-full text-base">
+                        <Link href="/auth/login" className="flex items-center justify-center gap-2">
+                          <LogIn className="h-5 w-5" />
+                          Đăng nhập
+                        </Link>
+                      </Button>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <Button asChild className="w-full h-11 rounded-full text-base bg-emerald-600 hover:bg-emerald-700">
+                        <Link href="/auth/signup" className="flex items-center justify-center gap-2">
+                          <UserPlus className="h-5 w-5" />
+                          Đăng ký
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  </>
+                )}
               </div>
             </div>
           </SheetContent>

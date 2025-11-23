@@ -1,4 +1,3 @@
-// src/app/checkout/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -111,14 +110,23 @@ export default function CheckoutPage() {
       payment_method: form.payment_method,
     };
 
+    // --- 1. PREPARE HEADERS (HEADER-BASED AUTH FIX) ---
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     try {
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
       const res = await fetch(`${API_BASE}/api/orders/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers, // <--- UPDATED: Send Auth Header
         body: JSON.stringify(payload),
-        credentials: "include", // sends cookies for JWT auth
+        // credentials: "include", // <--- REMOVED: Do not depend on cookies
       });
 
       if (!res.ok) {
@@ -133,7 +141,7 @@ export default function CheckoutPage() {
       }
 
       const data = await res.json();
-      toast?.({ title: "Đặt hàng thành công", description: `Mã đơn: ${data.id}` });
+      toast?.({ title: "Đặt hàng thành công"});
 
       await refreshCart();
 

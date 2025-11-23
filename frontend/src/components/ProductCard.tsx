@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: ProductShort }) {
         </div>
       )}
       <h3 className="font-semibold">{product.name}</h3>
-      <p className="text-sm">¥{product.price}</p>
+      <p className="text-sm">đ{product.price}</p>
       <div className="mt-3">
         <Button
           onClick={handleAdd}

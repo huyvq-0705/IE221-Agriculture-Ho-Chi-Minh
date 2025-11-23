@@ -3,7 +3,8 @@
 import { useFormStatus } from "react-dom";
 import { adminLogin } from "../actions";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@/components/ui";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -16,6 +17,17 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(adminLogin, { message: "" });
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.success && state.tokens) {
+     
+      localStorage.setItem("accessToken", state.tokens.access);
+      localStorage.setItem("refreshToken", state.tokens.refresh);
+      
+      router.push('/agrihcmAdmin');
+    }
+  }, [state, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -35,7 +47,7 @@ export default function LoginPage() {
               <Input id="password" name="password" type="password" required />
             </div>
             
-            {state?.message && (
+            {state?.message && !state.success && (
               <p className="text-sm text-destructive">{state.message}</p>
             )}
 

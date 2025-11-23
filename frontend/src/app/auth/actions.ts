@@ -8,6 +8,12 @@ import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adap
 interface ActionState {
   message: string;
   success?: boolean;
+  // NEW: Return tokens to the client so we can save them in localStorage
+  tokens?: {
+    access: string;
+    refresh: string;
+    user: any;
+  };
 }
 
 interface LoginResponse {
@@ -25,7 +31,6 @@ function setAuthCookies(
   accessToken: string,
   refreshToken: string
 ) {
-
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -51,9 +56,19 @@ export async function apiLogin(prevState: ActionState, formData: FormData): Prom
 
     const cookieStore = await cookies();
 
+    // Keep setting cookies for Next.js Server Components (optional but good for protected routes)
     setAuthCookies(cookieStore, response.access, response.refresh);
 
-    return { success: true, message: 'Login successful' };
+    // RETURN TOKENS TO CLIENT
+    return { 
+      success: true, 
+      message: 'Login successful',
+      tokens: {
+        access: response.access,
+        refresh: response.refresh,
+        user: response.user
+      }
+    };
 
   } catch (error) {
     console.error("Login failed:", error);
@@ -134,16 +149,19 @@ export async function apiLogout() {
   }
 
   try {
-    await fetchApi("api/logout/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        refresh: refreshToken
-      })
-    });
+    // Try to logout on backend
+    if (accessToken) {
+        await fetchApi("api/logout/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+            refresh: refreshToken
+        })
+        });
+    }
   } catch (error) {
     console.error("Logout failed:", error);
   }
