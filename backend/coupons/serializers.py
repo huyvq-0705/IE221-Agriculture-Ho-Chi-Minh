@@ -11,20 +11,30 @@ class CouponSerializer(serializers.ModelSerializer):
         """
         Cho phép bỏ trống (null) một số trường mang nghĩa 'không giới hạn'.
         """
-        # Nếu không có usage_limit, hiểu là không giới hạn lượt dùng
         if 'usage_limit' in attrs and attrs['usage_limit'] is None:
             attrs['usage_limit'] = None
 
-        # Nếu không có max_discount_amount, hiểu là không giới hạn giảm giá tối đa
         if 'max_discount_amount' in attrs and attrs['max_discount_amount'] is None:
             attrs['max_discount_amount'] = None
 
         return attrs
     
-    def save(self, *args, **kwargs):
-        if self.expires_at and self.expires_at < timezone.now():
-            self.is_active = False
-        super().save(*args, **kwargs)
+    def create(self, validated_data):
+        """Override create để xử lý is_active khi tạo mới"""
+        instance = Coupon(**validated_data)
+        if instance.expires_at and instance.expires_at < timezone.now():
+            instance.is_active = False
+        instance.save()
+        return instance
+    
+    def update(self, instance, validated_data):
+        """Override update để xử lý is_active khi cập nhật"""
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if instance.expires_at and instance.expires_at < timezone.now():
+            instance.is_active = False
+        instance.save()
+        return instance
 
 class CouponDetailSerializer(serializers.ModelSerializer):
     class Meta:
