@@ -171,19 +171,36 @@ const UpdateCouponModal: React.FC<UpdateCouponModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Time Used */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Time Used
-                            </label>
-                            <input
-                                name="time_used"
-                                type="number"
-                                min="0"
-                                value={form.times_used}
-                                onChange={handleChange}
-                                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
-                            />
+                        {/* Usage limit and time used*/}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Usage Limit
+                                </label>
+                                <input
+                                    name="usage_limit"
+                                    type="number"
+                                    min="0"
+                                    value={form.usage_limit}
+                                    onChange={handleChange}
+                                    className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-600"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Time Used
+                                </label>
+                                <input
+                                    name="times_used"
+                                    type="number"
+                                    min="0"
+                                    value={form.times_used}
+                                    onChange={handleChange}
+                                    readOnly     // Chặn chỉnh sửa nhưng vẫn submit
+                                    className="w-full border rounded-lg px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                                />
+                            </div>
                         </div>
 
                         {/* Expiration Date */}

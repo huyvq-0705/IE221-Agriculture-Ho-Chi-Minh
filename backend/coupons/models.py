@@ -15,5 +15,14 @@ class Coupon(models.Model):
     class Meta:
         db_table = 'coupons' 
     
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def save(self, *args, **kwargs):
+        if self.is_expired():
+            self.is_active = False
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.code

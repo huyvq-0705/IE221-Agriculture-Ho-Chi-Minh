@@ -143,16 +143,16 @@ const CreateCouponModal: React.FC<CreateCouponModalProps> = ({
             </div>
           </div>
 
-          {/* TIME USE */}
+          {/* USAGE LIMIT */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Time Use
+              Usage Limit
             </label>
             <input
-              name="time_used"
+              name="usage_limit"
               type="number"
               min="0"
-              value={form.time_used}
+              value={form.usage_limit}
               onChange={handleChange}
               className="w-full border rounded-lg px-3 py-2"
             />

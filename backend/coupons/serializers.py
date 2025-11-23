@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Coupon
+from django.utils import timezone
 
 class CouponSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +20,11 @@ class CouponSerializer(serializers.ModelSerializer):
             attrs['max_discount_amount'] = None
 
         return attrs
+    
+    def save(self, *args, **kwargs):
+        if self.expires_at and self.expires_at < timezone.now():
+            self.is_active = False
+        super().save(*args, **kwargs)
 
 class CouponDetailSerializer(serializers.ModelSerializer):
     class Meta:
