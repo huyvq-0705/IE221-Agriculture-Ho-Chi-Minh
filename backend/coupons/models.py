@@ -20,9 +20,9 @@ class Coupon(models.Model):
         return timezone.now() > self.expires_at
     
     def save(self, *args, **kwargs):
-        if self.is_expired():
-            self.is_active = False
+        # Luôn cập nhật is_active dựa trên ngày hết hạn
+        self.is_active = not self.is_expired()
         super().save(*args, **kwargs)
-        
+
     def __str__(self):
         return self.code
