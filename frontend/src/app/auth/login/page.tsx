@@ -2,23 +2,32 @@
 
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { apiLogin } from "../actions"; 
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@/components/ui";
+import { apiLogin, requestOTPforResetPassword } from "../actions";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@/components/ui";
 import { useActionState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button"
 
-function SubmitButton() {
+interface SubmitButtonProps {
+  dialog?: boolean;
+}
+
+function SubmitButton({dialog = false}: SubmitButtonProps) {
   const { pending } = useFormStatus();
+  const text1 = dialog? "Đang gửi..." : "Đang đăng nhập...";
+  const text2 = dialog? "Gửi" : "Đăng nhập";
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Đang đăng nhập..." : "Đăng nhập"}
+      {pending ? text1 : text2}
     </Button>
   );
 }
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(apiLogin, { message: "" });
+  const [stateDialog, formActionDialog] = useActionState(requestOTPforResetPassword, { message: "" });
   const { checkUserSession } = useAuth();
   const router = useRouter();
 
@@ -67,6 +76,35 @@ export default function LoginPage() {
             <Link href="/auth/signup" className="underline">
               Đăng ký
             </Link>
+            <Dialog>
+              <DialogTrigger asChild>
+                <p className="underline hover:cursor-pointer">Quên mật khẩu?</p>
+              </DialogTrigger>
+              
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Xác thực OTP qua Email</DialogTitle>
+                  <DialogDescription>
+                    Hãy nhập email của bạn và nhấn gửi để chúng tôi gửi mã OTP
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form action={formActionDialog} className="grid gap-4">
+                  <div className="grid gap-3">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" name="email" placeholder="example@mail.com" required />
+                  </div>
+                  {!stateDialog.success && stateDialog?.message && (
+                    <p className="text-sm text-destructive">{stateDialog.message}</p>
+                  )}
+
+                  <DialogFooter>
+                    <SubmitButton dialog={true} />
+                  </DialogFooter>
+                </form>
+
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>

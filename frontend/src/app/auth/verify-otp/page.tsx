@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
-import { verifyOtp, resendOtp } from "../actions";
+import { verifyOtp, resendOtp, requestOTPforResetPassword } from "../actions";
 import { Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ function VerifyOTPComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
+  const forgotPassword = (searchParams.get("forgotPassword") === "true");
 
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,12 @@ function VerifyOTPComponent() {
       return;
     }
 
-    const result = await verifyOtp({ email, otp });
+    let result;
+    if (forgotPassword) {
+      result = await verifyOtp({ email, otp, forgotPassword });
+    } else {
+      result = await verifyOtp({ email, otp });
+    }
 
     setIsLoading(false);
     
@@ -64,7 +70,7 @@ function VerifyOTPComponent() {
     setError(null);
     setResendMessage(null);
 
-    const result = await resendOtp(email);
+    const result = forgotPassword ? await resendOtp(email, forgotPassword) : await resendOtp(email);
     
     setIsResending(false);
     setResendMessage(result.message);
