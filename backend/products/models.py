@@ -137,3 +137,23 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return self.image_url
+
+class ProductQuestion(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='questions'
+    )
+    author_name = models.CharField(max_length=100) 
+    content = models.TextField()
+    answer = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'product_questions'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['product'], name='idx_question_product'),
+        ]
+
+    def __str__(self):
+        return f"Question by {self.author_name} on {self.product.name}"

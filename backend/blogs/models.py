@@ -36,7 +36,13 @@ class Blog(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     DEFAULT_SOCIAL_IMAGE_URL = "https://images.unsplash.com/photo-1620200423727-8127f75d7f53?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-
+    related_product = models.ForeignKey(
+        'products.Product', 
+        on_delete=models.SET_NULL, # If product is deleted, keep the blog but remove the link
+        null=True, 
+        blank=True,
+        related_name='related_blogs'
+    )
     class Meta:
         db_table = "blogs"
         indexes = [

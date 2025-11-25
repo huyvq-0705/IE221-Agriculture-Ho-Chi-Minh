@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { label: "Orders", href: "/agrihcmAdmin/orders", icon: ShoppingCart },
   { label: "Users", href: "/agrihcmAdmin/users", icon: Users },
   { label: "Blogs", href: "/agrihcmAdmin/blogs", icon: FileText },
+  { label: "Questions", href: "/agrihcmAdmin/questions", icon: Tags },
 ];
 
 function NavLink({

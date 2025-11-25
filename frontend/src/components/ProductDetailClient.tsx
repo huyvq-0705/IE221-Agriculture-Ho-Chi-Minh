@@ -3,13 +3,13 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Star, Package, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import ProductCarousel from "@/components/product_carousel";
+import { Button } from "@/components/ui/button";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import ProductRating from "@/components/ProductRating";
+import ProductQuestions from "@/components/ProductQuestions"; // Added Q&A
 
 type RelatedProduct = {
   id: number;
@@ -150,7 +150,7 @@ export default function ProductDetailClient({
                 <p className="text-gray-700 leading-relaxed">{product.description || "Chưa có mô tả chi tiết."}</p>
               </div>
 
-              {/* ACTIONS: pass the full product object so AddToCartButton can optimally use it */}
+              {/* ACTIONS */}
               <div className="flex gap-4 pt-4">
                 <AddToCartButton
                   product={{
@@ -162,22 +162,14 @@ export default function ProductDetailClient({
                   isInStock={product.is_in_stock ?? true}
                   stockQuantity={product.stock_quantity ?? 0}
                 />
-
-              
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Ratings */}
-      <Card>
-        <CardContent className="p-6 md:p-8">
-          <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
-          <Separator className="my-4" />
-          <ProductRating productId={product.id} />
-        </CardContent>
-      </Card>
+      {/* --- Product Questions (Replaced Ratings) --- */}
+      <ProductQuestions productSlug={product.slug} />
 
       {/* Related by category */}
       {categoryProducts.length > 0 && (

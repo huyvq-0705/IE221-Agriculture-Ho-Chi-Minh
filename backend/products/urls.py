@@ -4,7 +4,9 @@ from products.views import (
     CategoryListAPIView, CategoryDetailView, CategoryListCreateView,
     ProductListAPIView, ProductDetailAPIView, InstantProductSearchAPIView,
     AdminProductListCreateView, AdminProductDetailView,
-    ProductRatingListCreateView, ProductRatingDetailView
+    ProductRatingListCreateView, ProductRatingDetailView,
+    AdminQuestionListView, AdminQuestionDetailView,
+    ProductQuestionListCreateView,
 )
 
 app_name = 'products'
@@ -86,6 +88,21 @@ urlpatterns = [
         'api/search/products/',
         InstantProductSearchAPIView.as_view(),
         name='instant_product_search',
+    ),
+    path(
+        'api/admin/questions/', 
+        AdminQuestionListView.as_view(),
+        name='admin_question_list',
+    ),
+    path(
+        'api/admin/questions/<int:pk>/', 
+        AdminQuestionDetailView.as_view(),
+        name='admin_question_detail',
+    ),
+    path(
+        'api/products/<slug:slug>/questions/',
+        ProductQuestionListCreateView.as_view(),
+        name='product_question_list_create',
     ),
 ]
 

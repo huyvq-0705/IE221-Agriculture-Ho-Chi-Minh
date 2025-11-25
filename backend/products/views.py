@@ -15,7 +15,7 @@ from rest_framework.exceptions import ValidationError, PermissionDenied
 import logging
 from django.db import IntegrityError, transaction
 
-from .models import Category, Product, ProductRating, ProductImage
+from .models import Category, Product, ProductRating, ProductImage, ProductQuestion
 from .serializers import (
     CategorySerializer,
     ProductListSerializer,
@@ -24,6 +24,8 @@ from .serializers import (
     ProductSoftDeleteSerializer,
     ProductRatingSerializer,
     ProductRatingDetailSerializer,
+    ProductQuestionSerializer,
+    AdminProductQuestionSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -298,3 +300,66 @@ class ProductRatingDetailView(generics.RetrieveUpdateDestroyAPIView):
         if serializer.instance.user != self.request.user:
             raise PermissionDenied("Bạn chỉ có thể sửa đánh giá của chính mình.")
         serializer.save()
+
+
+class ProductQuestionListCreateView(CsrfExemptAPIView, generics.ListCreateAPIView):
+    """
+    Public Endpoint:
+    GET: List questions for a product (slug)
+    POST: Ask a question (no login required)
+    """
+    serializer_class = ProductQuestionSerializer
+    permission_classes = [AllowAny]
+    pagination_class = ProductPagination # Reuse existing pagination
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        # Return questions for this product, ordered by newest
+        return ProductQuestion.objects.filter(product__slug=slug).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        slug = self.kwargs.get('slug')
+        try:
+            product = Product.objects.get(slug=slug)
+            serializer.save(product=product)
+        except Product.DoesNotExist:
+            raise ValidationError("Product not found.")
+
+class AdminQuestionListView(generics.ListAPIView):
+    """
+    Admin Endpoint:
+    GET: List ALL questions from ALL products. 
+    Can filter by status=unanswered
+    """
+    queryset = ProductQuestion.objects.select_related('product', 'product__category').all().order_by('answer', '-created_at')
+    serializer_class = AdminProductQuestionSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = ProductPagination
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Filter: ?status=unanswered
+        status_param = self.request.query_params.get('status')
+        if status_param == 'unanswered':
+            qs = qs.filter(Q(answer__isnull=True) | Q(answer=''))
+        
+        # Search: ?search=keyword
+        search = self.request.query_params.get('search')
+        if search:
+            qs = qs.filter(
+                Q(content__icontains=search) | 
+                Q(author_name__icontains=search) |
+                Q(product__name__icontains=search)
+            )
+        
+        return qs
+
+class AdminQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Admin Endpoint:
+    PATCH: Reply to a question (update 'answer' field)
+    DELETE: Remove a spam question
+    """
+    queryset = ProductQuestion.objects.all()
+    serializer_class = AdminProductQuestionSerializer
+    permission_classes = [IsAdminUser]

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 import RichTextEditor from "@/components/richTextEditor";
 
@@ -50,7 +49,6 @@ const META_MAX = 160;
 
 type ActionResult = { ok: boolean; message?: string };
 
-// Product type for dropdown
 type SimpleProduct = {
   id: number;
   name: string;
@@ -65,9 +63,9 @@ type Props = {
     cover_image_url: string;
     cover_image_alt: string;
     content: string;
-    product: { id: number; name: string } | null; // Nested obj
+    related_product: { id: number; name: string } | null;
   }>;
-  products?: SimpleProduct[]; // NEW PROP: List of products
+  products?: SimpleProduct[];
   onSubmit: (prev: any, formData: FormData) => Promise<ActionResult>;
   submitText: string;
   redirectTo?: string;
@@ -79,7 +77,7 @@ const Counter = ({ value, max }: { value: number; max: number }) => (
 
 export default function BlogForm({
   initial,
-  products = [], // Default to empty array
+  products = [],
   onSubmit,
   submitText,
   redirectTo = "/agrihcmAdmin/blogs",
@@ -90,9 +88,8 @@ export default function BlogForm({
   const [title, setTitle] = React.useState(initial?.title ?? "");
   const [coverUrl, setCoverUrl] = React.useState(initial?.cover_image_url ?? "");
   
-  // Init product ID from initial nested object if it exists
   const [selectedProductId, setSelectedProductId] = React.useState<string>(
-    initial?.product?.id ? String(initial.product.id) : ""
+    initial?.related_product?.id ? String(initial.related_product.id) : ""
   );
 
   React.useEffect(() => {
@@ -128,10 +125,9 @@ export default function BlogForm({
         />
       </div>
 
-      {/* NEW: Product Selection Dropdown */}
       <div className="grid gap-1.5">
-        <Label htmlFor="product_id">Featured Product (Optional)</Label>
-        <Select name="product_id" value={selectedProductId} onValueChange={setSelectedProductId}>
+        <Label htmlFor="related_product_id">Featured Product (Optional)</Label>
+        <Select name="related_product_id" value={selectedProductId} onValueChange={setSelectedProductId}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a product to feature..." />
           </SelectTrigger>

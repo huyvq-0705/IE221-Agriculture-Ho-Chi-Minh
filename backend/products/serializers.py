@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from django.db.models import Avg
 from django.db import transaction
-from .models import Category, Product, ProductReview, ProductImage, ProductRating
+from .models import Category, Product, ProductReview, ProductImage, ProductRating, ProductQuestion
 
 
 # -------- Category Serializers --------
@@ -240,3 +240,33 @@ class ProductRatingSerializer(serializers.ModelSerializer):
 class ProductRatingDetailSerializer(ProductRatingSerializer):
     class Meta(ProductRatingSerializer.Meta):
         fields = ['id', 'rating', 'comment', 'user', 'created_at']
+
+
+class ProductQuestionSerializer(serializers.ModelSerializer):
+    """ Public serializer: Ask question & See list """
+    class Meta:
+        model = ProductQuestion
+        fields = ['id', 'author_name', 'content', 'answer', 'created_at']
+        read_only_fields = ['id', 'answer', 'created_at']
+
+class AdminProductQuestionSerializer(serializers.ModelSerializer):
+    """ Admin serializer: See product details & Reply """
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_slug = serializers.CharField(source='product.slug', read_only=True)
+    product_image = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ProductQuestion
+        fields = [
+            'id', 'product', 'product_name', 'product_slug', 'product_image', 
+            'author_name', 'content', 'answer', 'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'product', 'product_name', 'product_slug', 'product_image', 
+            'author_name', 'content', 'created_at', 'updated_at'
+        ]
+
+    def get_product_image(self, obj):
+        # Fetch the first image URL if it exists
+        img = obj.product.images.first()
+        return img.image_url if img else None
