@@ -9,6 +9,7 @@ from bleach.sanitizer import (
 )
 from bleach.css_sanitizer import CSSSanitizer
 from .models import Blog
+from products.models import Product 
 
 ALLOWED_TAGS = sorted(
     set(BLEACH_TAGS)
@@ -53,14 +54,26 @@ class BlogListSerializer(serializers.ModelSerializer):
             "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
-
-
+class LinkedProductCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'price', 'is_in_stock']
 class BlogDetailSerializer(serializers.ModelSerializer):
     seo_title = serializers.ReadOnlyField()
     seo_description = serializers.ReadOnlyField()
     social_image_url = serializers.ReadOnlyField()
     social_image_alt = serializers.ReadOnlyField()
 
+
+    related_product = LinkedProductCardSerializer(read_only=True)
+
+    related_product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='related_product',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = Blog
         fields = [
@@ -71,6 +84,8 @@ class BlogDetailSerializer(serializers.ModelSerializer):
             "created_at", "updated_at",
             "seo_title", "seo_description",
             "social_image_url", "social_image_alt",
+            "related_product",     
+            "related_product_id",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
 
@@ -88,3 +103,4 @@ class BlogDetailSerializer(serializers.ModelSerializer):
             strip=True,
             css_sanitizer=CSS_SANITIZER,
         )
+

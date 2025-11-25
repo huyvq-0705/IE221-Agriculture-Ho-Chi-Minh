@@ -30,6 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const userData = await getCurrentUser();
+      if (userData) {
+      window.dispatchEvent(new Event("user-logged-in"));
+    }
       setUser(userData);
     } catch (error) {
       console.error("Failed to get user", error);

@@ -28,7 +28,13 @@ SECRET_KEY = 'django-insecure-^-mxmfs150vmonjb6ev%tckfv)s5-of_ynd9xeqm46p()m6fcj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'agrihcm.vercel.app',
+    'backend-agrihcm.fly.dev',
+    'www.agrihcm.shop',
+]
 
 
 # Application definition
@@ -45,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'blogs',
     'products',
+    'carts',
     'users',
     'accounts',
     'orders',
@@ -64,13 +71,20 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-# Cho phép tất cả origins (CHỈ dùng khi dev)
-CORS_ALLOW_ALL_ORIGINS = True
-
-# Hoặc chỉ định cụ thể
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://agrihcm.vercel.app",
+    "https://www.agrihcm.shop",
+    "https://backend-agrihcm.fly.dev",
+    "https://agrihcm.shop",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://www.agrihcm.shop",
+    "https://agrihcm.shop",
+    "https://agrihcm.vercel.app",
 ]
 
 # Cho phép credentials
@@ -158,7 +172,9 @@ AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        "accounts.authentication.CookieJWTAuthentication",
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -166,11 +182,16 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
 }
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
 
 AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN')
 AUTH0_CLIENT_ID = os.getenv('AUTH0_CLIENT_ID')

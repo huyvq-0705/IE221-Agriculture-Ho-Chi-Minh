@@ -1,6 +1,13 @@
 from __future__ import annotations
 from django.urls import path
-from products.views import CategoryListAPIView, CategoryDetailView, CategoryListCreateView, ProductListAPIView, ProductDetailAPIView
+from products.views import (
+    CategoryListAPIView, CategoryDetailView, CategoryListCreateView,
+    ProductListAPIView, ProductDetailAPIView, InstantProductSearchAPIView,
+    AdminProductListCreateView, AdminProductDetailView,
+    ProductRatingListCreateView, ProductRatingDetailView,
+    AdminQuestionListView, AdminQuestionDetailView,
+    ProductQuestionListCreateView,
+)
 
 app_name = 'products'
 
@@ -12,6 +19,17 @@ urlpatterns = [
     path(
         'api/products/<slug:slug>/', ProductDetailAPIView.as_view(),
         name='api_product_detail',
+    ),
+    # Product Ratings
+    path(
+        'api/products/<int:product_id>/ratings/',
+        ProductRatingListCreateView.as_view(),
+        name='product_rating_list',
+    ),
+    path(
+        'api/products/<int:product_id>/ratings/<int:pk>/',
+        ProductRatingDetailView.as_view(),
+        name='product_rating_detail',
     ),
     # # Product Reviews
     # path(
@@ -33,25 +51,58 @@ urlpatterns = [
         'api/categories/', CategoryListAPIView.as_view(),
         name='api_category_list',
     ),
-    # path(
-    #     'api/admin/categories/', CategoryListCreateView.as_view(),
-    #     name='admin_category_list_create',
-    # ),
+    path(
+        'api/admin/categories/', CategoryListCreateView.as_view(),
+        name='admin_category_list_create',
+    ),
+    path(
+        'api/admin/categories/', CategoryListCreateView.as_view(),
+        name='admin_category_list_create',
+    ),
     path(
         'api/admin/categories/<slug:slug>/', CategoryDetailView.as_view(),
         name='admin_category_detail',
     ),
-    # path(
-    #     'api/admin/products/', views.AdminProductListCreateView.as_view(),
-    #     name='admin_product_list_create',
-    # ),
-    # path(
-    #     'api/admin/products/<int:pk>/', views.AdminProductDetailView.as_view(),
-    #     name='admin_product_detail',
-    # ),
-    # path(
-    #     'api/search/products/',
-    #     views.InstantProductSearchAPIView.as_view(),
-    #     name='instant_product_search',
-    # ),
+    path(
+        'api/admin/products/', AdminProductListCreateView.as_view(),
+        name='admin_product_list_create',
+    ),
+    path(
+        'api/admin/products/<slug:slug>/', AdminProductDetailView.as_view(),
+        name='admin_product_detail',
+    ),
+    path(
+        'api/search/products/',
+        InstantProductSearchAPIView.as_view(),
+        name='instant_product_search',
+    ),
+    path(
+        'api/admin/products/', AdminProductListCreateView.as_view(),
+        name='admin_product_list_create',
+    ),
+    path(
+        'api/admin/products/<slug:slug>/', AdminProductDetailView.as_view(),
+        name='admin_product_detail',
+    ),
+    path(
+        'api/search/products/',
+        InstantProductSearchAPIView.as_view(),
+        name='instant_product_search',
+    ),
+    path(
+        'api/admin/questions/', 
+        AdminQuestionListView.as_view(),
+        name='admin_question_list',
+    ),
+    path(
+        'api/admin/questions/<int:pk>/', 
+        AdminQuestionDetailView.as_view(),
+        name='admin_question_detail',
+    ),
+    path(
+        'api/products/<slug:slug>/questions/',
+        ProductQuestionListCreateView.as_view(),
+        name='product_question_list_create',
+    ),
 ]
+
