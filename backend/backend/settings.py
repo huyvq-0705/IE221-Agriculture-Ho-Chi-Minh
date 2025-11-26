@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+from celery.schedules import crontab
 import os
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from a .env file if present
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'accounts',
     'orders',
     'corsheaders',
+    'coupons',
 ]
 
 MIDDLEWARE = [
