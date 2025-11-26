@@ -9,9 +9,14 @@ interface User {
   id: number;
   username: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  avatar?: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar: string | undefined;
+  phone_number: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  address: string | null;
+  date_joined: string;
 }
 
 // Hàm lấy thông tin user từ cookie
