@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import DOMPurify from "isomorphic-dompurify"
-import { ArrowLeft, Facebook, Linkedin, Twitter } from "lucide-react"
+import { ArrowLeft, Facebook, Linkedin, Twitter, ShoppingBag } from "lucide-react"
 
 type BlogPost = {
   id: number
@@ -19,6 +19,14 @@ type BlogPost = {
   social_image_url: string | null
   social_image_alt: string | null
   absolute_url?: string
+  // Added related product field
+  related_product: {
+    id: number
+    name: string
+    slug: string
+    price: string | number
+    is_in_stock: boolean
+  } | null
 }
 
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000"
@@ -249,6 +257,50 @@ export default async function BlogPostPage({
           dangerouslySetInnerHTML={{ __html: enhancedHtml }}
         />
       </article>
+
+      {/* --- PRODUCT CARD (Shadcn-like style) --- */}
+      {post.related_product && (
+        <div className="my-10 overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-md">
+          <div className="border-b border-emerald-100 bg-emerald-50/50 px-6 py-4">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-emerald-900">
+              <ShoppingBag className="h-5 w-5 text-emerald-600" />
+              Sản phẩm liên quan
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-gray-900">
+                    {post.related_product.name}
+                  </span>
+                  {post.related_product.is_in_stock ? (
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                      Còn hàng
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                      Hết hàng
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(Number(post.related_product.price))}
+                </p>
+              </div>
+              <Link
+                href={`/products/${post.related_product.slug}`}
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+              >
+                Xem chi tiết
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chia sẻ bài viết */}
       <aside className="mt-10 flex flex-col items-start justify-between gap-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4 sm:flex-row sm:items-center">

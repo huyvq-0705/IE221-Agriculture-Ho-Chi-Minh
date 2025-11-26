@@ -13,9 +13,17 @@ async function authHeaders(): Promise<HeaderMap> {
   return h;
 }
 
+function parseProductId(value: any): number | null {
+  if (!value || value === "" || value === "0") return null;
+  return Number(value);
+}
+
 export async function createBlog(_prev: any, formData: FormData): Promise<ActionResult> {
   try {
-    const payload = Object.fromEntries(formData);
+    const payload: any = Object.fromEntries(formData);
+    
+    payload.related_product_id = parseProductId(payload.related_product_id);
+
     await fetchApi("api/admin/blogs/", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
@@ -30,9 +38,11 @@ export async function createBlog(_prev: any, formData: FormData): Promise<Action
 
 export async function updateBlog(_prev: any, formData: FormData): Promise<ActionResult> {
   try {
-    const payload = Object.fromEntries(formData);
+    const payload: any = Object.fromEntries(formData);
     const slug = String(payload.slug);
-    delete (payload as any).slug;
+    delete payload.slug;
+
+    payload.related_product_id = parseProductId(payload.related_product_id);
 
     await fetchApi(`api/admin/blogs/${encodeURIComponent(slug)}/`, {
       method: "PATCH",

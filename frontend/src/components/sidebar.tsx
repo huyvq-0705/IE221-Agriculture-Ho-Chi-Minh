@@ -36,11 +36,11 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/agrihcmAdmin", icon: LayoutDashboard },
   { label: "Products", href: "/agrihcmAdmin/products", icon: Package },
-  { label: "Categories", href: "/agrihcmAdmin/categories", icon: Tags },
   { label: "Orders", href: "/agrihcmAdmin/orders", icon: ShoppingCart },
   { label: "Users", href: "/agrihcmAdmin/users", icon: Users },
   { label: "Blogs", href: "/agrihcmAdmin/blogs", icon: FileText },
   { label: "Coupons", href: "/agrihcmAdmin/coupons", icon: TicketPercent},
+  { label: "Questions", href: "/agrihcmAdmin/questions", icon: Tags },
 ];
 
 function NavLink({

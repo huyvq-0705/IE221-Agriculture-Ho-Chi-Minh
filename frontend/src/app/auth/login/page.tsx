@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { apiLogin } from "../actions";
+import { apiLogin } from "../actions"; 
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@/components/ui";
 import { useActionState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,9 +23,17 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state.success) {
+    if (state?.success) {
+      if (state.tokens) {
+        localStorage.setItem("accessToken", state.tokens.access);
+        localStorage.setItem("refreshToken", state.tokens.refresh);
+        
+        window.dispatchEvent(new Event("user-logged-in"));
+      }
+
+
       checkUserSession().then(() => {
-        router.push('/blog'); 
+        router.push('/'); 
       });
     }
   }, [state, checkUserSession, router]);

@@ -38,12 +38,56 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def _generate_unique_slug(self):
+        """
+        Create a slug from the product name; append a numeric suffix if necessary
+        to keep it unique.
+        """
+        base = slugify(self.name) or "product"
+        slug_candidate = base
+        counter = 0
+
+        # loop until unique (exclude self when updating)
+        while Product.objects.filter(slug=slug_candidate).exclude(pk=self.pk).exists():
+            counter += 1
+            slug_candidate = f"{base}-{counter}"
+
+        return slug_candidate
+
+    def save(self, *args, **kwargs):
+        # If slug is blank or empty, generate it from the name
+        if not self.slug or str(self.slug).strip() == "":
+            self.slug = self._generate_unique_slug()
+        super().save(*args, **kwargs)
     class Meta:
         db_table = 'products'
         indexes = [
             models.Index(fields=['slug'], name='idx_products_slug'),
             models.Index(fields=['created_at'], name='idx_products_created'),
         ]
+        ordering = ['-created_at']
+
+#-------- product ratting --------
+
+class ProductRating(models.Model):
+    RATING_CHOICES = (
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+    )
+    
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'product_ratings'
+        unique_together = ('product', 'user')  # Each user can rate a product only once
         ordering = ['-created_at']
 
 #-------- product review --------
@@ -93,3 +137,23 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return self.image_url
+
+class ProductQuestion(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='questions'
+    )
+    author_name = models.CharField(max_length=100) 
+    content = models.TextField()
+    answer = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'product_questions'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['product'], name='idx_question_product'),
+        ]
+
+    def __str__(self):
+        return f"Question by {self.author_name} on {self.product.name}"

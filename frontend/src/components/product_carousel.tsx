@@ -12,7 +12,7 @@ interface Product {
   slug: string;
   name: string;
   price: string;
-  primary_image?: string;
+  primary_image?: string | null;
   images?: { id: number; image_url: string }[];
   discount_percent?: number;
   is_in_stock?: boolean;
