@@ -43,8 +43,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 class OTPVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=10)
+    forgotPassword = serializers.BooleanField(required=False, default=False)
 
 class OTPResendSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    forgotPassword = serializers.BooleanField(required=False, default=False)
+
+class OTPRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
 class LoginSerializer(serializers.Serializer):
@@ -91,3 +96,6 @@ class AdminLoginSerializer(serializers.Serializer):
         
         attrs['user'] = user
         return attrs
+    
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])

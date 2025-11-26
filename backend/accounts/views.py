@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, LoginSerializer, AdminLoginSerializer, OTPVerifySerializer, OTPResendSerializer
+from .serializers import RegisterSerializer, LoginSerializer, AdminLoginSerializer, OTPVerifySerializer, OTPResendSerializer, OTPRequestSerializer, ResetPasswordSerializer
 from django.contrib.auth import authenticate, get_user_model
 from backend import settings
 import requests, random, string
@@ -130,6 +130,7 @@ class VerifyOTPView(APIView):
         
         email = serializer.validated_data['email']
         otp = serializer.validated_data['otp']
+        is_forgot_password = serializer.validated_data.get('forgotPassword', False)
         
         auth0_domain = settings.AUTH0_DOMAIN
         auth0_client_id = settings.AUTH0_CLIENT_ID
@@ -158,16 +159,28 @@ class VerifyOTPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            try:
-                user = User.objects.get(email=email, is_active=False)
-                user.is_active = True
-                user.save()
-            except User.DoesNotExist:
+            if not is_forgot_password:
+                try:
+                    user = User.objects.get(email=email, is_active=False)
+                    user.is_active = True
+                    user.save()
+                except User.DoesNotExist:
+                    return Response(
+                        {"error": "Tài khoản không tồn tại hoặc đã được kích hoạt."},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            else:
+                user = User.objects.get(email=email)
+                refresh = RefreshToken.for_user(user)
                 return Response(
-                    {"error": "Tài khoản không tồn tại hoặc đã được kích hoạt."},
-                    status=status.HTTP_404_NOT_FOUND
+                    {
+                        "message": "Xác thực thành công.",
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token)
+                    },
+                    status=status.HTTP_200_OK
                 )
-            
+      
             return Response(
                 {"message": "Xác thực thành công. Tài khoản đã được kích hoạt."},
                 status=status.HTTP_200_OK
@@ -188,14 +201,16 @@ class ResendOTPView(APIView):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data['email']
+        is_forgot_password = serializer.validated_data.get('forgotPassword', False)
 
-        try:
-            user = User.objects.get(email=email, is_active=False)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "Tài khoản không tồn tại hoặc đã được kích hoạt."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        if not is_forgot_password:
+            try:
+                user = User.objects.get(email=email, is_active=False)
+            except User.DoesNotExist:
+                return Response(
+                    {"error": "Tài khoản không tồn tại hoặc đã được kích hoạt."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
         auth0_domain = settings.AUTH0_DOMAIN
         auth0_client_id = settings.AUTH0_CLIENT_ID
@@ -203,7 +218,7 @@ class ResendOTPView(APIView):
         payload = {
             "client_id": auth0_client_id,
             "connection": "email",
-            "email": user.email,
+            "email": email,
             "send": "code"
         }
         
@@ -279,3 +294,75 @@ class AdminLoginView(APIView):
                 'is_superuser': user.is_superuser
             }
         }, status=status.HTTP_200_OK)
+    
+
+class RequestOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = OTPRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        try:
+            User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Email không tồn tại hoặc tài khoản chưa được kích hoạt"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        auth0_domain = settings.AUTH0_DOMAIN
+        auth0_client_id = settings.AUTH0_CLIENT_ID
+        
+        payload = {
+            "client_id": auth0_client_id,
+            "connection": "email",
+            "email": email,
+            "send": "code"
+        }
+        
+        try:
+            response = requests.post(
+                f"https://{auth0_domain}/passwordless/start",
+                json=payload
+            )
+            response.raise_for_status()
+        
+        except requests.RequestException:
+            return Response(
+                {"error": "Không thể gửi OTP. Vui lòng thử lại sau."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response(
+            {"message": "Đã gửi mã OTP. Vui lòng kiểm tra email của bạn."},
+            status=status.HTTP_200_OK
+        )
+    
+
+class ResetPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_password = serializer.validated_data['password']
+
+        try:
+            user = User.objects.get(email=request.user.email)
+
+            user.set_password(new_password)
+            user.save()
+
+            return Response(
+                {"message": "Đổi mật khẩu thành công."}, 
+                status=status.HTTP_200_OK
+            )
+
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Không tìm thấy người dùng với email này."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )

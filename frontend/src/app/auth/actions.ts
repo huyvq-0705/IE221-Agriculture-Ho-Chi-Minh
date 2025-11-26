@@ -104,9 +104,10 @@ export async function register(prevState: ActionState, formData: FormData): Prom
   redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
 }
 
-export async function verifyOtp(data: { email: string; otp: string }): Promise<ActionState> {
+export async function verifyOtp(data: { email: string; otp: string; forgotPassword?: boolean }): Promise<ActionState> {
+  let response;
   try {
-    await fetchApi("api/verify-otp/", {
+    response = await fetchApi("api/verify-otp/", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -119,14 +120,20 @@ export async function verifyOtp(data: { email: string; otp: string }): Promise<A
     return { message: "Đã xảy ra lỗi khi xác thực OTP." };
   }
 
-  redirect("/auth/login");
+  if (data.forgotPassword) {
+    const cookieStore = await cookies();
+    setAuthCookies(cookieStore, response.access, response.refresh);
+    redirect("/auth/reset-password");
+  } else {
+    redirect("/auth/login");
+  }
 }
 
-export async function resendOtp(email: string): Promise<ActionState> {
+export async function resendOtp(email: string, forgotPassword?: boolean): Promise<ActionState> {
   try {
     await fetchApi("api/resend-otp/", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, forgotPassword }),
     });
     return { success: true, message: "Đã gửi lại mã OTP. Vui lòng kiểm tra email." };
   } catch (error) {
@@ -168,5 +175,58 @@ export async function apiLogout() {
 
   cookieStore.delete('accessToken');
   cookieStore.delete('refreshToken');
-  redirect('/');
+  redirect('/auth/login');
+}
+
+export async function requestOTPforResetPassword(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const data = Object.fromEntries(formData);
+  const email = data.email as string;
+  try {
+    await fetchApi("api/request-otp/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}&forgotPassword=${encodeURIComponent(true)}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
+    console.error("Request OTP failed:", error);
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Lỗi không xác định xảy ra khi gửi mã." };
+  }
+}
+
+export async function apiResetPassword(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const data = Object.fromEntries(formData);
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+
+  if (data.password !== data.confirm_password) {
+    return { message: "Mật khẩu không khớp." };
+  }
+
+  try {
+    await fetchApi("api/reset-password/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ password: data.password }),
+    });
+    await apiLogout();
+    return { success: true, message: "Đã reset thành công" };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
+    console.error("Request OTP failed:", error);
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Lỗi không xác định xảy ra." };
+  }
 }
