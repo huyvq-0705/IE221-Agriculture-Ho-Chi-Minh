@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { AlertCircle } from "lucide-react"; 
 
 type OrderItem = {
   id: number;
@@ -24,7 +25,7 @@ type Order = {
   final_amount: string;
   pricing_snapshot?: any;
   cancel_reason?: string | null;
-  reject_reason?: string | null;
+  reject_reason?: string | null; // <--- The field exists here
   items: OrderItem[];
   created_at: string;
 };
@@ -39,6 +40,18 @@ const getAuthHeaders = () => {
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
   return headers;
+};
+
+// --- HELPER: Format Reject Reason ---
+// Makes the raw database code (e.g., "OUT_OF_STOCK") look human-readable
+const formatRejectReason = (reason: string) => {
+  switch (reason) {
+    case "OUT_OF_STOCK": return "Hết hàng (Out of stock)";
+    case "INVALID_ADDRESS": return "Địa chỉ không hợp lệ (Invalid Address)";
+    case "SUSPECTED_FRAUD": return "Nghi ngờ gian lận (Suspected Fraud)";
+    case "OTHER": return "Khác (Other)";
+    default: return reason;
+  }
 };
 
 export default function OrdersPage() {
@@ -58,8 +71,8 @@ export default function OrdersPage() {
     setError(null);
     try {
       const res = await fetch(`${API_BASE}/api/orders/`, { 
-          headers: getAuthHeaders(), // HYBRID
-          credentials: "include"     // HYBRID
+          headers: getAuthHeaders(),
+          credentials: "include"
       });
       if (!res.ok) throw new Error(`Failed to load orders (${res.status})`);
       const data = await res.json();
@@ -163,6 +176,22 @@ export default function OrdersPage() {
               <div>{statusBadge(selected.status)}</div>
             </div>
 
+            {/* --- NEW: REJECTION NOTICE --- */}
+            {selected.status === "REJECTED" && selected.reject_reason && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-3">
+                 <div className="text-red-600 mt-0.5">
+                   <AlertCircle size={18} /> {/* Or just use a simple <span>!</span> if no icon lib */}
+                 </div>
+                 <div>
+                   <h4 className="text-sm font-semibold text-red-800">Đơn hàng bị từ chối</h4>
+                   <p className="text-sm text-red-700 mt-1">
+                     Lý do: {formatRejectReason(selected.reject_reason)}
+                   </p>
+                 </div>
+              </div>
+            )}
+            {/* --- END NEW REJECTION NOTICE --- */}
+
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-700">Customer</h3>
@@ -173,15 +202,31 @@ export default function OrdersPage() {
                   <div className="mt-2 whitespace-pre-wrap">{selected.customer_address}</div>
                 </div>
               </div>
+
               <div>
                 <h3 className="text-sm font-medium text-gray-700">Payment & Totals</h3>
-                <div className="mt-2 text-sm text-gray-600">
+                <div className="mt-2 text-sm text-gray-600 space-y-1">
                   <div>Payment: {selected.payment_method}</div>
-                  <div>Subtotal: đ{selected.subtotal_amount}</div>
-                  <div>Discount: đ{selected.discount_amount}</div>
-                  <div className="font-semibold mt-2">Total: đ{selected.final_amount}</div>
+                  
+                  <div className="flex justify-between max-w-[200px]">
+                    <span>Subtotal:</span>
+                    <span>đ{selected.subtotal_amount}</span>
+                  </div>
+
+                  {Number(selected.discount_amount) > 0 && (
+                    <div className="flex justify-between max-w-[200px] text-red-600 font-medium">
+                      <span>Discount:</span>
+                      <span>- đ{selected.discount_amount}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between max-w-[200px] font-bold mt-2 pt-2 border-t border-gray-300">
+                     <span>Total:</span>
+                     <span>đ{selected.final_amount}</span>
+                  </div>
                 </div>
               </div>
+
             </div>
 
             <div className="mt-6">

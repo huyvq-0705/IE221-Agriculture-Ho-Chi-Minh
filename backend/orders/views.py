@@ -5,6 +5,8 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from coupons.models import Coupon
+from django.utils import timezone
 
 # Cookie-aware auth (reads httpOnly accessToken from cookies)
 from accounts.authentication import CookieJWTAuthentication
@@ -39,51 +41,24 @@ class OrderListCreateAPIView(generics.ListCreateAPIView):
         return OrderSerializer if self.request.method == "GET" else OrderCreateSerializer
 
     @transaction.atomic
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        """
-        Create an order from the authenticated user's cart stored in DB.
-        Client sends only customer details and payment_method.
-        This method will CLEAR the cart items upon successful order creation.
-        """
-        # Validate incoming customer fields
+        # 1. Validate data
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
 
-        # Lock the user's cart & cart items for update
         try:
             cart = Cart.objects.select_for_update().get(user=request.user)
         except Cart.DoesNotExist:
             return Response({"detail": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch and lock cart items and their products
         cart_items_qs = CartItem.objects.select_for_update().filter(cart=cart).select_related("product")
         cart_items = list(cart_items_qs)
 
         if not cart_items:
             return Response({"detail": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Pre-check inventory
-        shortages = []
-        for ci in cart_items:
-            prod = ci.product
-            if getattr(prod, "stock_quantity", None) is not None:
-                if prod.stock_quantity < ci.quantity:
-                    shortages.append({
-                        "product_id": prod.id,
-                        "product_name": prod.name,
-                        "requested": ci.quantity,
-                        "available": prod.stock_quantity,
-                    })
-
-        if shortages:
-            return Response({
-                "detail": "Some items are out of stock or insufficient quantity.",
-                "shortages": shortages
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create the order
+    
         order = Order.objects.create(
             user=request.user,
             customer_name=validated.get("customer_name", ""),
@@ -97,7 +72,6 @@ class OrderListCreateAPIView(generics.ListCreateAPIView):
         subtotal = Decimal("0.00")
         snapshot_items = []
 
-        # Build OrderItem from cart items; update stock
         for ci in cart_items:
             product = Product.objects.select_for_update().get(pk=ci.product.pk)
             qty = int(ci.quantity)
@@ -120,25 +94,61 @@ class OrderListCreateAPIView(generics.ListCreateAPIView):
                 "qty": qty,
                 "unit": str(unit),
             })
-
-            # decrease stock if tracked
+            
             if getattr(product, "stock_quantity", None) is not None:
                 new_stock = max(0, int(product.stock_quantity) - qty)
                 product.stock_quantity = new_stock
                 product.is_in_stock = new_stock > 0
                 product.save(update_fields=["stock_quantity", "is_in_stock"])
 
-        # Finalize order totals and snapshot
+        discount_amount = Decimal("0.00")
+        coupon_code = validated.get("coupon_code")
+        applied_coupon = None
+
+        if coupon_code:
+            try:
+               
+                coupon = Coupon.objects.select_for_update().get(code=coupon_code)
+                
+                
+                now = timezone.now()
+                if not coupon.is_active or coupon.expires_at < now:
+                    raise ValueError("Coupon expired")
+                if coupon.usage_limit is not None and coupon.times_used >= coupon.usage_limit:
+                    raise ValueError("Coupon usage limit reached")
+                if subtotal < coupon.min_purchase_amount:
+                    raise ValueError("Minimum purchase requirement not met")
+                
+                # Calculate Discount
+                calc_discount = (subtotal * coupon.discount_percent) / 100
+                if coupon.max_discount_amount:
+                    calc_discount = min(calc_discount, coupon.max_discount_amount)
+                
+                discount_amount = calc_discount
+                
+                # Update Coupon usage
+                coupon.times_used += 1
+                coupon.save()
+                applied_coupon = coupon
+
+            except Coupon.DoesNotExist:
+                # Optional: Fail the order OR just ignore the invalid code
+                pass 
+            except ValueError:
+                pass
+
+        # 6. Finalize Order
         order.subtotal_amount = subtotal
-        order.discount_amount = Decimal("0.00")
-        order.final_amount = subtotal
+        order.discount_amount = discount_amount
+        order.final_amount = max(Decimal("0.00"), subtotal - discount_amount)
         order.pricing_snapshot = {"version": 1, "items": snapshot_items}
+        if applied_coupon:
+            order.coupon = applied_coupon # Save the relation
+        
         order.save()
 
-        # CLEAR the cart items (inside same transaction)
+        # 7. Clear Cart
         cart_items_qs.delete()
-        # Optionally delete the cart row:
-        # cart.delete()
 
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 

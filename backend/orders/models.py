@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import models
 from products.models import Product
+from coupons.models import Coupon
 
 class OrderStatus(models.TextChoices):
     PENDING = "PENDING", "Pending"
@@ -33,6 +34,9 @@ class Order(models.Model):
     customer_phone = models.CharField(max_length=32)
     customer_email = models.EmailField(blank=True, null=True)
     customer_address = models.TextField()
+
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+
 
     payment_method = models.CharField(max_length=32, choices=PaymentMethod.choices, default=PaymentMethod.COD)
     status = models.CharField(max_length=32, choices=OrderStatus.choices, default=OrderStatus.PENDING)

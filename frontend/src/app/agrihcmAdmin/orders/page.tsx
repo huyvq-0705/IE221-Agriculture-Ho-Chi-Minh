@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -73,8 +72,8 @@ export default function AdminOrdersPage() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/admin/orders/?ordering=-created_at`, {
-        headers: getAuthHeaders(), // HYBRID
-        credentials: "include",    // HYBRID
+        headers: getAuthHeaders(),
+        credentials: "include",
         cache: "no-store",
       });
       if (!res.ok) throw new Error(`Failed to fetch orders (${res.status})`);
@@ -309,15 +308,36 @@ export default function AdminOrdersPage() {
                       <div className="mt-2 whitespace-pre-wrap text-sm">{detail.customer_address}</div>
                     </div>
                   </div>
+                  
+                  {/* --- UPDATED SECTION: PAYMENT & TOTALS --- */}
                   <div>
                     <h3 className="text-sm font-medium text-gray-700">Payment & Totals</h3>
-                    <div className="mt-2 text-sm text-gray-600">
+                    <div className="mt-2 text-sm text-gray-600 space-y-1">
                       <div>Payment: {detail.payment_method}</div>
-                      <div>Subtotal: đ{detail.subtotal_amount ?? "-"}</div>
-                      <div className="font-semibold mt-2">Total: đ{detail.final_amount ?? "-"}</div>
+                      <div className="flex justify-between max-w-[200px]">
+                        <span>Subtotal:</span> 
+                        <span>đ{detail.subtotal_amount ?? "0"}</span>
+                      </div>
+
+                      {/* CONDITIONAL DISCOUNT DISPLAY */}
+                      {Number(detail.discount_amount) > 0 && (
+                        <div className="flex justify-between max-w-[200px] text-red-600 font-medium">
+                           <span>Discount:</span>
+                           <span>- đ{detail.discount_amount}</span>
+                        </div>
+                      )}
+
+                      {/* Total with top border to simulate math line */}
+                      <div className="flex justify-between max-w-[200px] font-bold mt-2 pt-2 border-t border-gray-300">
+                         <span>Total:</span>
+                         <span>đ{detail.final_amount ?? "-"}</span>
+                      </div>
+
                       {detail.reject_reason && <div className="mt-2 text-sm text-red-600">Reject: {detail.reject_reason}</div>}
                     </div>
                   </div>
+                  {/* --- END UPDATED SECTION --- */}
+                
                 </div>
 
                 <div>
@@ -345,7 +365,7 @@ export default function AdminOrdersPage() {
                   {detail.status === "PENDING" && (
                     <>
                       {!showRejectSelect ? (
-                        <Button variant="destructive" onClick={() => setShowRejectSelect(true)} disabled={actionLoading} className="text-red-600">
+                        <Button variant="destructive" onClick={() => setShowRejectSelect(true)} disabled={actionLoading} className="text-white">
                           Reject
                         </Button>
                       ) : (
@@ -356,7 +376,7 @@ export default function AdminOrdersPage() {
                             <option value="SUSPECTED_FRAUD">Suspected fraud</option>
                             <option value="OTHER">Other</option>
                           </select>
-                          <Button variant="destructive" onClick={() => rejectOrder(detail.id)} disabled={actionLoading} className="text-red-600">
+                          <Button variant="destructive" onClick={() => rejectOrder(detail.id)} disabled={actionLoading} className="text-white">
                              Confirm
                           </Button>
                           <Button variant="outline" onClick={() => { setShowRejectSelect(false); setRejectReason("OTHER"); }}>Cancel</Button>
