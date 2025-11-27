@@ -61,11 +61,15 @@ export default function AboutPage() {
     "Xuất bản hướng dẫn súc tích cho trang trại quy mô nhỏ–trung bình.",
     "Chuyển nghiên cứu thành checklist và template dễ dùng.",
     "Nêu bật cải tiến chi phí thấp với ROI rõ ràng.",
-    "Chia sẻ câu chuyện thành công và sai lầm nên tránh.",
+    "Chia sẻ câu chuyện thành công và thất bại (đa số thất bại từ deadlines)",
   ]
 
   const team = [
-    { name: "Quang Huy Vũ", role: "Người sáng lập & Biên tập", initials: "QV" },
+    { name: "Vũ Quang Huy", role: "Chủ nô", initials: "QV" },
+    { name: "Trần Trung Hiếu", role: "Trồng  Coupon", initials: "MT" },
+    { name: "Lê Đặng Hoàng Huy ", role: "Trồng Authentication", initials: "HH" },
+    { name: "Phạm Gia Bảo", role: "Trồng Product 1st", initials: "NA" },
+    { name: "Nguyễn Tuấn Minh", role: "Trồng Product 2nd", initials: "NT" },  
   ]
 
   return (

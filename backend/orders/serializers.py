@@ -43,6 +43,8 @@ class OrderCreateSerializer(serializers.Serializer):
     customer_address = serializers.CharField()
     payment_method = serializers.ChoiceField(choices=PaymentMethod.choices, default=PaymentMethod.COD)
 
+    coupon_code = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
 
 class OrderCancelSerializer(serializers.Serializer):
     cancel_reason = serializers.ChoiceField(choices=CancelReason.choices)
